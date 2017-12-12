@@ -1,0 +1,22 @@
+
+@import url(https://fonts.googleapis.com/css?family=Quicksand);
+
+body {
+	color: #757575;
+	font-family: sans-serif;
+
+	background-color: #252525;
+}
+
+canvas {
+  background-color: #959592;
+}
+
+.about {
+  padding: 32px;
+}
+
+.font-qs {
+    font-family: 'Quicksand';
+    font-size: 24px;
+}

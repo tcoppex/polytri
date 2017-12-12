@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet"
+          href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+          crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+
+    <title>Polygons</title>
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <canvas id="canvas-app" width="640px" height="480px">
+      </canvas>
+      <form>
+        <input id="reset-app" class="btn btn-danger" type="button" value="Reset">
+        <input id="contour" class="btn btn-danger" type="button" value="Contour">
+        <input id="export" class="btn btn-danger" type="button" value="Export">
+      </form>
+      <div class="about font-qs">
+        <h4>Create / Display polygons</h4>
+        <p>Create polygons by <em>clicking</em> in clockwise-order on the canvas with 'contour' enabled.<br/>
+           Click <em>Export</em> to display the point list in the console.</p>
+        <p>Display polygons by <em>reloading</em> the page after running <strong>PolyTri</strong> on an example.</p>
+      </div>
+    </div>
+
+    <script src="./js/common.js" defer></script>
+    <script src="./js/data.js" defer></script>
+    <script src="./js/polygons.js" defer></script>
+    
+    <script>
+    window.onload = function() {
+      App.init();
+      document.getElementById('reset-app').onclick = App.reset;
+      document.getElementById('contour').onclick = App.contour;
+      document.getElementById('export').onclick = App.export;
+    };
+    </script>
+  </body>
+</html>
