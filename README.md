@@ -1,3 +1,4 @@
+![Stage: alpha](https://img.shields.io/badge/-alpha-red)
 
 # polytri
 
@@ -5,22 +6,15 @@ PolyTri is a polygon triangulator for [simple polygons](https://en.wikipedia.org
 
 ## Quickstart
 
-To build the static library and a simple command line tool, open a terminal and type :
-
 ```bash
+# Build the demo.
 cmake -B build . -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-```
 
-You can then run the command line tool by typing :
-
-```bash
+# Triangulate a simple shape.
 ./build/polytri-cli ./shape.data
-```
 
-Finally to display the result type :
-
-```bash
+# Display it on the browser.
 firefox -new-window ./tools/polygon.html
 ```
 
