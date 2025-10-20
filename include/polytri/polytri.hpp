@@ -1,23 +1,31 @@
-#ifndef POLYGON_TRIANGULATION_H_
-#define POLYGON_TRIANGULATION_H_
+#pragma once
 
 #include <cassert>
+#include <cfloat>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <vector>
+#include <cstring>
+
+#include <chrono>
+#include <iostream>
+#include <limits>
 #include <list>
+#include <random>
+#include <vector>
+#include <algorithm>
+
+#define POLYTRI_DEBUG_INFO 0
 
 // ----------------------------------------------------------------------------
 // COMMON
 
-struct vector_t {
-  vector_t() = default;
-  vector_t(double _x, double _y) : x(_x), y(_y) {}
+struct vertex_t {
+  vertex_t() = default;
+  vertex_t(double _x, double _y) : x(_x), y(_y) {}
   double x;
   double y;
 };
-
-typedef vector_t vertex_t;
 
 struct segment_t {
   segment_t() = default;
@@ -260,4 +268,12 @@ class PolygonTriangulation {
 
 // ----------------------------------------------------------------------------
 
-#endif // POLYGON_TRIANGULATION_H_
+#ifdef POLYTRI_IMPLEMENTATION
+
+#include "polytri/polygon_triangulation.inl"
+#include "polytri/monotone_partitioning.inl"
+#include "polytri/trapezoidal_decomposition.inl"
+
+#endif // POLYTRI_IMPLEMENTATION
+
+// ----------------------------------------------------------------------------

@@ -2,7 +2,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "polygon_triangulation.h"
+#define POLYTRI_IMPLEMENTATION
+#include "polytri/polytri.hpp"
 
 /* -------------------------------------------------------------------------- */
 

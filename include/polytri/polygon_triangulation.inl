@@ -1,8 +1,3 @@
-#include "polygon_triangulation.h"
-
-#include <cstring>
-#include <algorithm>
-#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 

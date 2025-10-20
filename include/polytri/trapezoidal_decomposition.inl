@@ -1,14 +1,4 @@
-#include "polygon_triangulation.h"
 
-#include <cmath>
-#include <cfloat>
-#include <iostream>
-#include <algorithm>
-#include <chrono>
-#include <random>
-#include <limits>
-
-#define DEBUG_INFO 0
 
 /* -------------------------------------------------------------------------- */
 
@@ -97,7 +87,7 @@ double PolygonTriangulation::distance_from_segment(const vertex_t &v, const segm
   const auto &A = vertices_[max_y_index];
   const auto &B = vertices_[min_y_index];
 
-  vector_t AB;
+  vertex_t AB;
   AB.x = B.x - A.x;
   AB.y = B.y - A.y;
   const auto det = -(AB.y * v.x - AB.x * v.y + B.x*A.y - B.y*A.x);
@@ -256,7 +246,7 @@ void PolygonTriangulation::add_endpoint_to_query_structure(const uint32_t vertex
   // The bottom trapezoid is newly created, so we must updated its neighbors as well.
   update_ysplit_trapezoid_neighbors(btm_trap_index);
 
-#if DEBUG_INFO
+#if POLYTRI_DEBUG_INFO
   fprintf(stderr, "split Y : top %d / bottom %d (at %d = %f).\n",
           top_trap_index, btm_trap_index,
           vertex_index, vertices_[vertex_index].y);
@@ -452,7 +442,7 @@ void PolygonTriangulation::split_merge_trapezoids(
   left_trap.right_segment = segment_index;
   right_trap.left_segment = segment_index;
 
-#if DEBUG_INFO
+#if POLYTRI_DEBUG_INFO
   fprintf(stderr, "sub-split X : left %d / right %d (trap %d)\n", left_trap_index, right_trap_index, trapezoid_index);
 #endif
   assert(kInvalidIndex != trapezoid.min_y);
@@ -546,7 +536,7 @@ void PolygonTriangulation::thread_endpoints(
   // by default.
   auto *new_sink = create_node(SINK, root_, new_trapezoid_index);
 
-#if DEBUG_INFO
+#if POLYTRI_DEBUG_INFO
   fprintf(stderr, "> split X : %d %d\n", max_y_index, min_y_index);
 #endif
   split_merge_trapezoids(segment_index, min_y_index, top_trapezoid_index, nullptr, new_sink);
