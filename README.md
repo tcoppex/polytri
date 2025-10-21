@@ -2,7 +2,7 @@
 
 # polytri
 
-PolyTri is a polygon triangulator for [simple polygons](https://en.wikipedia.org/wiki/Simple_polygon), _without holes_, based on Seidel's algorithm [1].
+PolyTri is a polygon triangulator for [simple polygons](https://en.wikipedia.org/wiki/Simple_polygon) _without holes_ based on Seidel's algorithm [1].
 
 <!--
 ## Quickstart
@@ -22,16 +22,18 @@ firefox -new-window ./tools/polygon.html
 ## Usage
 
 ```cpp
-
+/* Define this in a single compilation unit. */
 #define POLYTRI_IMPLEMENTATION
 #include "polytri/polytri.hpp"
 
+/* Any type goes if they have public x / y attributes. */
 template<typename T>
 struct Vertex_t {
   T x{};
   T y{};
 };
 
+/* The vertices list is expect to be a Container-type. */
 template<typename T>
 using Contour_t = std::vector<Vertex_t<T>>;
 
