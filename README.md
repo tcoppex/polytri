@@ -2,8 +2,9 @@
 
 # polytri
 
-PolyTri is a polygon triangulator for [simple polygons](https://en.wikipedia.org/wiki/Simple_polygon) based on Seidel's algorithm [1].
+PolyTri is a polygon triangulator for [simple polygons](https://en.wikipedia.org/wiki/Simple_polygon), _without holes_, based on Seidel's algorithm [1].
 
+<!--
 ## Quickstart
 
 ```bash
@@ -16,6 +17,38 @@ cmake --build build
 
 # Display it on the browser.
 firefox -new-window ./tools/polygon.html
+``` -->
+
+## Usage
+
+```cpp
+#include "polytri.hpp"
+
+template<typename T>
+struct Vertex_t {
+  T x{};
+  T y{};
+};
+
+template<typename T>
+using Contour_t = std::vector<Vertex_t<T>>;
+
+int main(int argc, char *argv[])
+{
+  std::vector<Contour_t<float>> polygons = {
+    { {0.0, 2.0}, {1.0, -0.5}, {-1.0, 0.0}, {-4.0, 2.0} }
+  };
+
+  auto indices = PolyTri::Triangulate( polygons );
+
+  for (auto const& i : indices) {
+    std::cerr << i << " ";
+  }
+  std::cerr << "\n";
+
+  return 0;
+}
+
 ```
 
 ---
