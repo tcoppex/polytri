@@ -22,7 +22,9 @@ firefox -new-window ./tools/polygon.html
 ## Usage
 
 ```cpp
-#include "polytri.hpp"
+
+#define POLYTRI_IMPLEMENTATION
+#include "polytri/polytri.hpp"
 
 template<typename T>
 struct Vertex_t {
