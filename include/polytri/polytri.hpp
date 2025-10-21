@@ -15,7 +15,7 @@
 #include <vector>
 #include <algorithm>
 
-#define POLYTRI_DEBUG_INFO 1
+#define POLYTRI_DEBUG_INFO 0
 
 #if POLYTRI_DEBUG_INFO
 #define POLYTRI_LOG(...)  fprintf(stderr, __VA_ARGS__)
@@ -26,31 +26,33 @@
 // ----------------------------------------------------------------------------
 // COMMON
 
-struct vertex_t {
-  vertex_t() = default;
-  vertex_t(double _x, double _y) : x(_x), y(_y) {}
-  double x{};
-  double y{};
-};
-
-struct segment_t {
-  segment_t() = default;
-  segment_t(uint32_t _v0, uint32_t _v1) : v0(_v0), v1(_v1) {}
-  uint32_t v0{};
-  uint32_t v1{};
-};
-
-struct triangle_t {
-  triangle_t() = default;
-  triangle_t(uint32_t _v0, uint32_t _v1, uint32_t _v2) : v0(_v0), v1(_v1), v2(_v2) {}
-  uint32_t v0{};
-  uint32_t v1{};
-  uint32_t v2{};
-};
 
 // ----------------------------------------------------------------------------
 
 class PolyTri {
+ public:
+  struct vertex_t {
+    vertex_t() = default;
+    vertex_t(double _x, double _y) : x(_x), y(_y) {}
+    double x{};
+    double y{};
+  };
+
+  struct segment_t {
+    segment_t() = default;
+    segment_t(uint32_t _v0, uint32_t _v1) : v0(_v0), v1(_v1) {}
+    uint32_t v0{};
+    uint32_t v1{};
+  };
+
+  struct triangle_t {
+    triangle_t() = default;
+    triangle_t(uint32_t _v0, uint32_t _v1, uint32_t _v2) : v0(_v0), v1(_v1), v2(_v2) {}
+    uint32_t v0{};
+    uint32_t v1{};
+    uint32_t v2{};
+  };
+
  public:
   typedef std::vector<triangle_t> TriangleBuffer_t;
   /**
@@ -67,12 +69,14 @@ class PolyTri {
 
 #if 1
   /* mapbox/earcut type interface */
-  template <typename N = uint32_t, typename Polygon>
-  static std::vector<N> Triangulate(const Polygon& poly) {
+  template </*typename N = uint32_t,*/ typename Polygon>
+  static std::vector<uint32_t> Triangulate(Polygon const& poly) {
+    size_t const NPOLY = poly.size();
 
     std::vector<uint32_t> contour_lengths;
     uint32_t totalLength = 0;
-    for (auto const& p : poly) {
+    for (size_t j = 0; j < NPOLY; ++j) {
+      auto const& p = poly[j];
       auto const clen = static_cast<uint32_t>(p.size());
       totalLength += clen;
       contour_lengths.push_back(clen);
@@ -80,7 +84,8 @@ class PolyTri {
 
     std::vector<vertex_t> vertices{};
     vertices.reserve(totalLength);
-    for (size_t j = 0; j < poly.size(); ++j) {
+
+    for (size_t j = 0; j < NPOLY; ++j) {
       auto const& p = poly[j];
 
       for (size_t i = 0; i < p.size(); ++i) {
@@ -91,7 +96,7 @@ class PolyTri {
       auto const&a = p[0];
       auto const&b = p[p.size()-1];
       if ((fabs(a.x-b.x) < DBL_EPSILON) && (fabs(a.y-b.y) < DBL_EPSILON)) {
-        fprintf(stderr, "Issue : start and end meet. (%.2f %.2f)\n", a.x, a.y);
+        POLYTRI_LOG("Issue : start and end meet. (%.2f %.2f)\n", a.x, a.y);
         vertices.resize(vertices.size()-1);
         contour_lengths[j] -= 1;
       }
@@ -105,7 +110,7 @@ class PolyTri {
       triangles
     );
 
-    std::vector<N> indices{};
+    std::vector<uint32_t> indices{};
     indices.reserve(3 * triangles.size());
     for (auto const& t : triangles) {
       indices.insert(indices.end(), {t.v2, t.v1, t.v0});

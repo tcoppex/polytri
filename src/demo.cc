@@ -10,10 +10,11 @@
 namespace {
 
 /** Read a data file to retrieve contour vertices */
-int LoadSegments(char *const filename,
-                 std::vector<uint32_t> &contour_lengths,
-                 std::vector<vertex_t> &vertices)
-{
+int LoadSegments(
+  char *const filename,
+  std::vector<uint32_t> &contour_lengths,
+  std::vector<PolyTri::vertex_t> &vertices
+) {
   std::ifstream fd(filename);
 
   if (fd.fail()) {
@@ -35,7 +36,7 @@ int LoadSegments(char *const filename,
     contour_lengths.push_back(npoints);
 
     for (auto i = 0u; i < npoints; ++i) {
-      vertex_t v;
+      PolyTri::vertex_t v;
       fd >> v.x >> v.y;
       vertices.push_back(v);
     }
@@ -44,9 +45,10 @@ int LoadSegments(char *const filename,
   return EXIT_SUCCESS;
 }
 
-void ExportData(PolyTri::TriangleBuffer_t &triangles,
-                 std::vector<vertex_t> &vertices)
-{
+void ExportData(
+  PolyTri::TriangleBuffer_t &triangles,
+  std::vector<PolyTri::vertex_t> &vertices
+) {
   const char* filename = APP_DIRECTORY "tools/js/data.js";
 
   std::ofstream fd(filename);
@@ -80,13 +82,14 @@ void ExportData(PolyTri::TriangleBuffer_t &triangles,
 
 int main(int argc, char *argv[])
 {
+#if 1
   if (argc < 2) {
     std::cerr << "usage : " << argv[0] << " filename." << std::endl;
     return EXIT_FAILURE;
   }
 
   std::vector<uint32_t> contour_lengths;
-  std::vector<vertex_t> vertices;
+  std::vector<PolyTri::vertex_t> vertices;
   if (LoadSegments(argv[1u], contour_lengths, vertices)) {
     std::cerr << "error while reading the data file." << std::endl;
     return EXIT_FAILURE;
@@ -101,6 +104,21 @@ int main(int argc, char *argv[])
   );
 
   ExportData(triangles, vertices);
+#else
+  std::vector<std::vector<vertex_t>> vertices = {
+    {
+       {0.0, 2.0}, {1.0, -0.5}, {-1.0, 0.0},// {0.0, 2.0}
+    }
+  };
+
+  auto indices = PolyTri::Triangulate( vertices );
+
+  for (auto const& i : indices) {
+    fprintf(stderr, "%d ", i);
+  }
+  fprintf(stderr, "\n");
+#endif
 
   return EXIT_SUCCESS;
 }
+

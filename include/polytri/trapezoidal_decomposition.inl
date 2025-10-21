@@ -3,7 +3,10 @@
 
 namespace {
 
-bool is_vertex_lower(const vertex_t &a, const vertex_t &b) {
+bool is_vertex_lower(
+  const PolyTri::vertex_t &a,
+  const PolyTri::vertex_t &b
+) {
 #if POLYTRI_DEBUG_INFO
   // fprintf(stderr, "a %.3f %.3f / b %.3f %.3f\n", a.x, a.y, b.x, b.y);
 #endif
