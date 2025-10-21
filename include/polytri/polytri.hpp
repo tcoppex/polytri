@@ -59,6 +59,62 @@ class PolyTri {
                           const vertex_t *vertices,
                           TriangleBuffer_t &triangles);
 
+#if 1
+  /* mapbox/earcut type interface */
+  template <typename N = uint32_t, typename Polygon>
+  static std::vector<N> Triangulate(const Polygon& poly) {
+
+    std::vector<uint32_t> contour_lengths;
+    uint32_t totalLength = 0;
+    for (auto const& p : poly) {
+      auto const clen = static_cast<uint32_t>(p.size());
+      totalLength += clen;
+      contour_lengths.push_back(clen);
+    }
+
+    std::vector<vertex_t> vertices{};
+    vertices.reserve(totalLength);
+    for (size_t j = 0; j < poly.size(); ++j) {
+      auto const& p = poly[j];
+
+      for (size_t i = 0; i < p.size(); ++i) {
+        auto const& v = p[i];
+#if POLYTRI_DEBUG_INFO
+        // fprintf(stderr, "(%.2f %.2f)\n", v.x, v.y);
+#endif
+        vertices.emplace_back(v.x, v.y);
+      }
+
+#if POLYTRI_DEBUG_INFO
+        // fprintf(stderr, "\n");
+#endif
+
+      auto const&a = p[0];
+      auto const&b = p[p.size()-1];
+      if ((fabs(a.x-b.x) < DBL_EPSILON) && (fabs(a.y-b.y) < DBL_EPSILON)) {
+        fprintf(stderr, "Issue : start and end meet. (%.2f %.2f)\n", a.x, a.y);
+        vertices.resize(vertices.size()-1);
+        contour_lengths[j] -= 1;
+      }
+    }
+
+    TriangleBuffer_t triangles{};
+    Triangulate(
+      contour_lengths.size(),
+      contour_lengths.data(),
+      vertices.data(),
+      triangles
+    );
+
+    std::vector<N> indices{};
+    indices.reserve(3 * triangles.size());
+    for (auto const& t : triangles) {
+      indices.insert(indices.end(), {t.v2, t.v1, t.v0});
+    }
+    return indices;
+  }
+#endif
+
  private:
   static const uint32_t kInvalidIndex = UINT32_MAX;
 
