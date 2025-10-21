@@ -38,8 +38,8 @@ bool PolyTri::is_top_inside_triangle(const Trapezoid_t &trapezoid) const
 
 bool PolyTri::is_top_triangle(const Trapezoid_t &trapezoid) const
 {
-  if (   (kInvalidIndex == trapezoid.left_segment)
-      || (kInvalidIndex == trapezoid.right_segment)) {
+  if ((kInvalidIndex == trapezoid.left_segment)
+   || (kInvalidIndex == trapezoid.right_segment)) {
     return false;
   }
 
@@ -49,8 +49,8 @@ bool PolyTri::is_top_triangle(const Trapezoid_t &trapezoid) const
   uint32_t maxy{}, miny{};
   get_max_min_y_indices(s1, maxy, miny);
 
-  if (   (maxy == s2.v0)
-      || (maxy == s2.v1)) {
+  if ((maxy == s2.v0)
+   || (maxy == s2.v1)) {
     return true;
   }
 
@@ -61,8 +61,8 @@ bool PolyTri::is_top_triangle(const Trapezoid_t &trapezoid) const
 
 bool PolyTri::is_bottom_triangle(const Trapezoid_t &trapezoid) const
 {
-  if (   (kInvalidIndex == trapezoid.left_segment)
-      || (kInvalidIndex == trapezoid.right_segment)) {
+  if ((kInvalidIndex == trapezoid.left_segment)
+   || (kInvalidIndex == trapezoid.right_segment)) {
     return false;
   }
 
@@ -72,8 +72,8 @@ bool PolyTri::is_bottom_triangle(const Trapezoid_t &trapezoid) const
   uint32_t maxy{}, miny{};
   get_max_min_y_indices(s1, maxy, miny);
 
-  if (   (miny == s2.v0)
-      || (miny == s2.v1)) {
+  if ((miny == s2.v0)
+   || (miny == s2.v1)) {
     return true;
   }
 
