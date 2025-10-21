@@ -1,22 +1,23 @@
-#include "polygon_triangulation.h"
 
 /* -------------------------------------------------------------------------- */
 
-PolygonTriangulation::InsertionSide_t PolygonTriangulation::GetIntersectionSide(
-    const bool min_is_right,
-    const bool go_down
+PolyTri::InsertionSide_t PolyTri::GetIntersectionSide(
+  const bool min_is_right,
+  const bool go_down
 ) {
-  return (min_is_right == go_down) ? PolygonTriangulation::InsertRight
-                                   : PolygonTriangulation::InsertLeft;
+  return (min_is_right == go_down) ? PolyTri::InsertRight
+                                   : PolyTri::InsertLeft
+                                   ;
 }
 
 /* -------------------------------------------------------------------------- */
 
-uint32_t PolygonTriangulation::find_top_inside_trapezoid_index() const {
+uint32_t PolyTri::find_top_inside_trapezoid_index() const {
+  POLYTRI_LOG("%s\n", __FUNCTION__);
+
   /// @bug : currently outside top triangle can be returned.
   for (uint32_t i = 0u; i < trapezoids_.size(); ++i) {
-    const auto& trapezoid = trapezoids_[i];
-    if (is_top_inside_triangle(trapezoid)) {
+    if (is_top_inside_triangle(trapezoids_[i])) {
       return i;
     }
   }
@@ -25,16 +26,20 @@ uint32_t PolygonTriangulation::find_top_inside_trapezoid_index() const {
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::add_vertex_to_monochain(
+void PolyTri::add_vertex_to_monochain(
     const Trapezoid_t &trapezoid,
     const bool go_down,
     Monochain_t *monochain
 ) {
+  // POLYTRI_LOG("%s %d %p\n", __FUNCTION__, go_down, (void*)monochain);
+
   /// * Insertion order depends on the side :
   /// When is left : up pushed back, down pushed front
   /// When is right : down pushed back, up pushed front
 
-  const auto vertex_index = (go_down) ? trapezoid.min_y : trapezoid.max_y;
+  const auto vertex_index = (go_down) ? trapezoid.min_y
+                                      : trapezoid.max_y
+                                      ;
 
   /// To insert vertices in direct order we look for the direction.
   if ((InsertRight == monochain->insertion_side) == go_down) {
@@ -46,11 +51,13 @@ void PolygonTriangulation::add_vertex_to_monochain(
 
 /* -------------------------------------------------------------------------- */
 
-PolygonTriangulation::Monochain_t* PolygonTriangulation::create_monochain(
+PolyTri::Monochain_t* PolyTri::create_monochain(
     const uint32_t first_index,
     const uint32_t second_index,
     const InsertionSide_t side
 ) {
+  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, first_index, second_index, side);
+
   /// * For a monochain, vertices are always added to the same side, left or right.
   /// This is due to the nature of monochain and the vertical trapezoidation.
   ///
@@ -81,22 +88,26 @@ PolygonTriangulation::Monochain_t* PolygonTriangulation::create_monochain(
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::select_monotone_path(
-    const uint32_t trapezoid_index,
-    const bool go_down,
-    const bool come_from_left
+void PolyTri::select_monotone_path(
+  const uint32_t trapezoid_index,
+  const bool go_down,
+  const bool come_from_left
 ) {
+  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, trapezoid_index, go_down, come_from_left);
+
   const auto &trapezoid = trapezoids_[trapezoid_index];
 
   assert(kInvalidIndex != trapezoid.left_segment);
   assert(kInvalidIndex != trapezoid.right_segment);
 
   // Check if a break occured.
+  uint32_t left_max_y{}, left_min_y{};
+  uint32_t right_max_y{}, right_min_y{};
+
   const auto &left_segment = segments_[trapezoid.left_segment];
-  const auto &right_segment = segments_[trapezoid.right_segment];
-  uint32_t left_max_y, left_min_y;
-  uint32_t right_max_y, right_min_y;
   get_max_min_y_indices(left_segment, left_max_y, left_min_y);
+
+  const auto &right_segment = segments_[trapezoid.right_segment];
   get_max_min_y_indices(right_segment, right_max_y, right_min_y);
 
   const auto tr_min = trapezoid.min_y;
@@ -115,7 +126,6 @@ void PolygonTriangulation::select_monotone_path(
     if (top_triangle || btm_triangle) {
       //
     } else if (top_middle && btm_middle) {
-
       if (come_from_left) {
         auto *new_monochain = create_monochain(tr_min, tr_max, InsertLeft);
         build_monotone_chains(new_monochain, trapezoid.above2, trapezoid_index, false);
@@ -185,12 +195,14 @@ void PolygonTriangulation::select_monotone_path(
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::build_monotone_chains(
-    Monochain_t *monochain,
-    const uint32_t trapezoid_index,
-    const uint32_t from_index,
-    const bool go_down
+void PolyTri::build_monotone_chains(
+  Monochain_t *monochain,
+  const uint32_t trapezoid_index,
+  const uint32_t from_index,
+  const bool go_down
 ) {
+  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, trapezoid_index, from_index, go_down);
+
   if ((kInvalidIndex == trapezoid_index)
    || (visited_trapezoids_[trapezoid_index])) {
     return;
@@ -201,7 +213,8 @@ void PolygonTriangulation::build_monotone_chains(
 
   // Determine if the current search come from the first children of the trapezoids.
   const bool come_from_left = (from_index == trapezoid.above1)
-                                                        || (from_index == trapezoid.below1);
+                           || (from_index == trapezoid.below1)
+                           ;
 
   add_vertex_to_monochain(trapezoid, go_down, monochain);
   select_monotone_path(trapezoid_index, go_down, come_from_left);
