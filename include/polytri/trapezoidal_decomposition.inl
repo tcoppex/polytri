@@ -17,7 +17,8 @@ bool PolyTri::is_top_inside_triangle(const Trapezoid_t &trapezoid) const
 {
   // Check if border segments are in direct order.
   if (is_top_triangle(trapezoid)) {
-    return (trapezoid.left_segment + 1u) % segments_.size() == trapezoid.right_segment;
+    auto const side = (trapezoid.left_segment + 1u) % segments_.size();
+    return side == trapezoid.right_segment;
   }
   return false;
 }
@@ -575,7 +576,9 @@ void PolyTri::init_permutation_table()
 #if 0
   const auto seed = std::chrono::system_clock::now().time_since_epoch().count();
   fprintf(stderr, "seed used : %lu\n", seed);
-  std::shuffle(permutation_.begin(), permutation_.end(), std::default_random_engine(seed));
+  std::shuffle(
+    permutation_.begin(), permutation_.end(), std::default_random_engine(seed)
+  );
 #endif
 }
 

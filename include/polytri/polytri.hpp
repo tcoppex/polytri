@@ -23,23 +23,23 @@
 struct vertex_t {
   vertex_t() = default;
   vertex_t(double _x, double _y) : x(_x), y(_y) {}
-  double x;
-  double y;
+  double x{};
+  double y{};
 };
 
 struct segment_t {
   segment_t() = default;
   segment_t(uint32_t _v0, uint32_t _v1) : v0(_v0), v1(_v1) {}
-  uint32_t v0;
-  uint32_t v1;
+  uint32_t v0{};
+  uint32_t v1{};
 };
 
 struct triangle_t {
   triangle_t() = default;
   triangle_t(uint32_t _v0, uint32_t _v1, uint32_t _v2) : v0(_v0), v1(_v1), v2(_v2) {}
-  uint32_t v0;
-  uint32_t v1;
-  uint32_t v2;
+  uint32_t v0{};
+  uint32_t v1{};
+  uint32_t v2{};
 };
 
 // ----------------------------------------------------------------------------
@@ -242,28 +242,28 @@ class PolyTri {
   // Attributes
   // -------------------------
 
-  uint32_t num_segments_;
-  const vertex_t *vertices_;
+  uint32_t num_segments_{};
+  const vertex_t *vertices_{};
 
-  std::vector<segment_t> segments_;
+  std::vector<segment_t> segments_{};
 
   // Randomized segments indices
-  std::vector<uint32_t> permutation_;
+  std::vector<uint32_t> permutation_{};
 
   // Query structure for trapezoidation
-  std::vector<Trapezoid_t> trapezoids_;
-  std::vector<QNode_t> query_points_;
-  QNode_t *root_ = nullptr;
-  std::vector<QNode_t*> vertex_ynodes_;
-  uint32_t used_trapezoid_count_ = 0u;
-  uint32_t used_node_count_ = 0u;
+  std::vector<Trapezoid_t> trapezoids_{};
+  std::vector<QNode_t> query_points_{};
+  QNode_t *root_{};
+  std::vector<QNode_t*> vertex_ynodes_{};
+  uint32_t used_trapezoid_count_{};
+  uint32_t used_node_count_{};
 
   // Data for monotonization
-  std::vector<bool> visited_trapezoids_;
-  std::list<Monochain_t> monochains_;
+  std::vector<bool> visited_trapezoids_{};
+  std::list<Monochain_t> monochains_{};
 
   // Output triangles
-  //std::vector<triangle_t> triangles_;
+  //std::vector<triangle_t> triangles_{};
 };
 
 // ----------------------------------------------------------------------------

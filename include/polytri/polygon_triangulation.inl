@@ -80,6 +80,7 @@ void PolyTri::monotone_partitioning()
   // we start partitioning on a top triangle.
   const auto start_tr = find_top_inside_trapezoid_index();
   assert(kInvalidIndex != start_tr);
+
   visited_trapezoids_[start_tr] = true;
 
   // recursively build monotone chain.

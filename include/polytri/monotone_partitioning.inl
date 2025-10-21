@@ -14,8 +14,7 @@ PolyTri::InsertionSide_t PolyTri::GetIntersectionSide(
 uint32_t PolyTri::find_top_inside_trapezoid_index() const {
   /// @bug : currently outside top triangle can be returned.
   for (uint32_t i = 0u; i < trapezoids_.size(); ++i) {
-    const auto& trapezoid = trapezoids_[i];
-    if (is_top_inside_triangle(trapezoid)) {
+    if (is_top_inside_triangle(trapezoids_[i])) {
       return i;
     }
   }
