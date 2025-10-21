@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.12.0)
 
 project(polytri VERSION 0.1 LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # -----------------------------------------------------------------------------
 
-set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../include)
 set(SOURCE_DIR  ${CMAKE_SOURCE_DIR}/src)
 
 # -----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ endif()
 
 # -----------------------------------------------------------------------------
 
-set(TargetName polytri-cli)
+set(TargetName polytri-demo)
 
 add_executable(${TargetName} ${SOURCE_DIR}/demo.cc)
 
