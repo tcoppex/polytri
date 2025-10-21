@@ -1,17 +1,17 @@
 
 /* -------------------------------------------------------------------------- */
 
-PolygonTriangulation::InsertionSide_t PolygonTriangulation::GetIntersectionSide(
+PolyTri::InsertionSide_t PolyTri::GetIntersectionSide(
     const bool min_is_right,
     const bool go_down
 ) {
-  return (min_is_right == go_down) ? PolygonTriangulation::InsertRight
-                                   : PolygonTriangulation::InsertLeft;
+  return (min_is_right == go_down) ? PolyTri::InsertRight
+                                   : PolyTri::InsertLeft;
 }
 
 /* -------------------------------------------------------------------------- */
 
-uint32_t PolygonTriangulation::find_top_inside_trapezoid_index() const {
+uint32_t PolyTri::find_top_inside_trapezoid_index() const {
   /// @bug : currently outside top triangle can be returned.
   for (uint32_t i = 0u; i < trapezoids_.size(); ++i) {
     const auto& trapezoid = trapezoids_[i];
@@ -24,7 +24,7 @@ uint32_t PolygonTriangulation::find_top_inside_trapezoid_index() const {
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::add_vertex_to_monochain(
+void PolyTri::add_vertex_to_monochain(
     const Trapezoid_t &trapezoid,
     const bool go_down,
     Monochain_t *monochain
@@ -45,7 +45,7 @@ void PolygonTriangulation::add_vertex_to_monochain(
 
 /* -------------------------------------------------------------------------- */
 
-PolygonTriangulation::Monochain_t* PolygonTriangulation::create_monochain(
+PolyTri::Monochain_t* PolyTri::create_monochain(
     const uint32_t first_index,
     const uint32_t second_index,
     const InsertionSide_t side
@@ -80,7 +80,7 @@ PolygonTriangulation::Monochain_t* PolygonTriangulation::create_monochain(
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::select_monotone_path(
+void PolyTri::select_monotone_path(
     const uint32_t trapezoid_index,
     const bool go_down,
     const bool come_from_left
@@ -184,11 +184,11 @@ void PolygonTriangulation::select_monotone_path(
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::build_monotone_chains(
-    Monochain_t *monochain,
-    const uint32_t trapezoid_index,
-    const uint32_t from_index,
-    const bool go_down
+void PolyTri::build_monotone_chains(
+  Monochain_t *monochain,
+  const uint32_t trapezoid_index,
+  const uint32_t from_index,
+  const bool go_down
 ) {
   if ((kInvalidIndex == trapezoid_index)
    || (visited_trapezoids_[trapezoid_index])) {

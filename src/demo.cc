@@ -44,7 +44,7 @@ int LoadSegments(char *const filename,
   return EXIT_SUCCESS;
 }
 
-void ExportData(PolygonTriangulation::TriangleBuffer_t &triangles,
+void ExportData(PolyTri::TriangleBuffer_t &triangles,
                  std::vector<vertex_t> &vertices)
 {
   const char* filename = APP_DIRECTORY "tools/js/data.js";
@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  PolygonTriangulation::TriangleBuffer_t triangles;
-  PolygonTriangulation::Triangulate(
+  PolyTri::TriangleBuffer_t triangles;
+  PolyTri::Triangulate(
     contour_lengths.size(),
     contour_lengths.data(),
     vertices.data(),

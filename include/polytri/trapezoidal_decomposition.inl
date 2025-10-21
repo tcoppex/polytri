@@ -13,7 +13,7 @@ bool is_vertex_lower(const vertex_t &a, const vertex_t &b) {
 
 /* -------------------------------------------------------------------------- */
 
-bool PolygonTriangulation::is_top_inside_triangle(const Trapezoid_t &trapezoid) const
+bool PolyTri::is_top_inside_triangle(const Trapezoid_t &trapezoid) const
 {
   // Check if border segments are in direct order.
   if (is_top_triangle(trapezoid)) {
@@ -24,7 +24,7 @@ bool PolygonTriangulation::is_top_inside_triangle(const Trapezoid_t &trapezoid) 
 
 /* -------------------------------------------------------------------------- */
 
-bool PolygonTriangulation::is_top_triangle(const Trapezoid_t &trapezoid) const
+bool PolyTri::is_top_triangle(const Trapezoid_t &trapezoid) const
 {
   if (   (kInvalidIndex == trapezoid.left_segment)
       || (kInvalidIndex == trapezoid.right_segment)) {
@@ -47,7 +47,7 @@ bool PolygonTriangulation::is_top_triangle(const Trapezoid_t &trapezoid) const
 
 /* -------------------------------------------------------------------------- */
 
-bool PolygonTriangulation::is_bottom_triangle(const Trapezoid_t &trapezoid) const
+bool PolyTri::is_bottom_triangle(const Trapezoid_t &trapezoid) const
 {
   if (   (kInvalidIndex == trapezoid.left_segment)
       || (kInvalidIndex == trapezoid.right_segment)) {
@@ -70,7 +70,7 @@ bool PolygonTriangulation::is_bottom_triangle(const Trapezoid_t &trapezoid) cons
 
 /* -------------------------------------------------------------------------- */
 
-uint32_t PolygonTriangulation::new_random_segment_index()
+uint32_t PolyTri::new_random_segment_index()
 {
   const uint32_t index = permutation_.back();
   permutation_.pop_back();
@@ -79,7 +79,7 @@ uint32_t PolygonTriangulation::new_random_segment_index()
 
 /* -------------------------------------------------------------------------- */
 
-double PolygonTriangulation::distance_from_segment(const vertex_t &v, const segment_t &segment)
+double PolyTri::distance_from_segment(const vertex_t &v, const segment_t &segment)
 {
   uint32_t max_y_index, min_y_index;
   get_max_min_y_indices(segment, max_y_index, min_y_index);
@@ -97,7 +97,7 @@ double PolygonTriangulation::distance_from_segment(const vertex_t &v, const segm
 
 /* -------------------------------------------------------------------------- */
 
-uint32_t PolygonTriangulation::search_trapezoid_index(const vertex_t &v, const QNode_t *node)
+uint32_t PolyTri::search_trapezoid_index(const vertex_t &v, const QNode_t *node)
 {
   assert(nullptr != node);
   switch (node->type) {
@@ -123,14 +123,14 @@ uint32_t PolygonTriangulation::search_trapezoid_index(const vertex_t &v, const Q
 
 /* -------------------------------------------------------------------------- */
 
-uint32_t PolygonTriangulation::get_new_trapezoid_index()
+uint32_t PolyTri::get_new_trapezoid_index()
 {
   return used_trapezoid_count_++;
 }
 
 /* -------------------------------------------------------------------------- */
 
-PolygonTriangulation::QNode_t* PolygonTriangulation::create_node(QNodeType_t type,
+PolyTri::QNode_t* PolyTri::create_node(QNodeType_t type,
                                                                  QNode_t *parent,
                                                                  uint32_t key_index)
 {
@@ -153,7 +153,7 @@ PolygonTriangulation::QNode_t* PolygonTriangulation::create_node(QNodeType_t typ
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::link_sink_node_and_trapezoid(QNode_t *node, uint32_t trapezoid_index)
+void PolyTri::link_sink_node_and_trapezoid(QNode_t *node, uint32_t trapezoid_index)
 {
   assert(node);
   assert(SINK == node->type);
@@ -163,7 +163,7 @@ void PolygonTriangulation::link_sink_node_and_trapezoid(QNode_t *node, uint32_t 
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::update_ysplit_trapezoid_neighbors(const uint32_t trapezoid_index)
+void PolyTri::update_ysplit_trapezoid_neighbors(const uint32_t trapezoid_index)
 {
   const auto &trapezoid = trapezoids_[trapezoid_index];
 
@@ -203,7 +203,7 @@ void PolygonTriangulation::update_ysplit_trapezoid_neighbors(const uint32_t trap
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::add_endpoint_to_query_structure(const uint32_t vertex_index)
+void PolyTri::add_endpoint_to_query_structure(const uint32_t vertex_index)
 {
   if (nullptr != vertex_ynodes_[vertex_index]) {
     return;
@@ -255,7 +255,7 @@ void PolygonTriangulation::add_endpoint_to_query_structure(const uint32_t vertex
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::get_max_min_y_indices(const segment_t& s,
+void PolyTri::get_max_min_y_indices(const segment_t& s,
                                                  uint32_t &max_y_index,
                                                  uint32_t &min_y_index) const
 {
@@ -270,7 +270,7 @@ void PolygonTriangulation::get_max_min_y_indices(const segment_t& s,
 
 /* -------------------------------------------------------------------------- */
 
-PolygonTriangulation::QNode_t* PolygonTriangulation::fusion_sinks(QNode_t *top_sink,
+PolyTri::QNode_t* PolyTri::fusion_sinks(QNode_t *top_sink,
                                                                   QNode_t *btm_sink)
 {
   auto &top_trap = trapezoids_[top_sink->key_index];
@@ -290,7 +290,7 @@ PolygonTriangulation::QNode_t* PolygonTriangulation::fusion_sinks(QNode_t *top_s
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::update_trapezoid_aboves(const uint32_t trapezoid_index,
+void PolyTri::update_trapezoid_aboves(const uint32_t trapezoid_index,
                                                    Trapezoid_t &below) {
   below.above1 = (trapezoid_index == below.above1) ? kInvalidIndex
                                                     : below.above1;
@@ -306,7 +306,7 @@ void PolygonTriangulation::update_trapezoid_aboves(const uint32_t trapezoid_inde
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::update_xsplit_trapezoid_neighbors(const MergeSide_t side,
+void PolyTri::update_xsplit_trapezoid_neighbors(const MergeSide_t side,
                                                              const uint32_t left_trap_index,
                                                              const uint32_t right_trap_index)
 {
@@ -398,7 +398,7 @@ void PolygonTriangulation::update_xsplit_trapezoid_neighbors(const MergeSide_t s
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::update_node_parent(QNode_t *new_parent, QNode_t *node) {
+void PolyTri::update_node_parent(QNode_t *new_parent, QNode_t *node) {
   if (node->parent->left == node) {
     node->parent->left = new_parent;
   } else if (node->parent->right == node) {
@@ -409,7 +409,7 @@ void PolygonTriangulation::update_node_parent(QNode_t *new_parent, QNode_t *node
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::split_merge_trapezoids(
+void PolyTri::split_merge_trapezoids(
     const uint32_t segment_index,
     const uint32_t end_y_index,
     const uint32_t trapezoid_index,
@@ -469,7 +469,7 @@ void PolygonTriangulation::split_merge_trapezoids(
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::compute_offset_vertex(
+void PolyTri::compute_offset_vertex(
     const uint32_t max_y_index,
     const uint32_t min_y_index,
     vertex_t &offset
@@ -490,7 +490,7 @@ void PolygonTriangulation::compute_offset_vertex(
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::thread_endpoints(
+void PolyTri::thread_endpoints(
     const uint32_t segment_index,
     const uint32_t max_y_index,
     const uint32_t min_y_index
@@ -552,7 +552,7 @@ void PolygonTriangulation::thread_endpoints(
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::add_segment_to_query_structure(const uint32_t segment_index)
+void PolyTri::add_segment_to_query_structure(const uint32_t segment_index)
 {
   const auto &segment = segments_[segment_index];
 
@@ -566,7 +566,7 @@ void PolygonTriangulation::add_segment_to_query_structure(const uint32_t segment
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::init_permutation_table()
+void PolyTri::init_permutation_table()
 {
   permutation_.resize(num_segments_);
   for (auto i = 0u; i < permutation_.size(); ++i) {
@@ -581,7 +581,7 @@ void PolygonTriangulation::init_permutation_table()
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::init_query_structure()
+void PolyTri::init_query_structure()
 {
   vertex_ynodes_.resize(num_segments_ + 1u, nullptr);
   query_points_.resize(8u * num_segments_);

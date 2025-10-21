@@ -44,7 +44,7 @@ struct triangle_t {
 
 // ----------------------------------------------------------------------------
 
-class PolygonTriangulation {
+class PolyTri {
  public:
   typedef std::vector<triangle_t> TriangleBuffer_t;
   /**
@@ -52,7 +52,7 @@ class PolygonTriangulation {
    * nvertices_per_contour : array of num_contour, each cell contain the number of
    *         vertices in its contour.
    * vertices : a set of sequentially ordered 2d floating point coordinates to triangulate.
-   * triangles : a buffer of indices where the triangles faces will be output. 
+   * triangles : a buffer of indices where the triangles faces will be output.
    */
   static void Triangulate(const size_t num_contours,
                           const uint32_t nvertices_per_contour[],
@@ -109,7 +109,7 @@ class PolygonTriangulation {
 
   static InsertionSide_t GetIntersectionSide(const bool min_is_right, const bool go_down);
 
-  PolygonTriangulation(const size_t num_contours,
+  PolyTri(const size_t num_contours,
                        const uint32_t nvertices_per_contour[],
                        const vertex_t *vertices);
 

@@ -1,16 +1,17 @@
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::Triangulate(const size_t num_contours,
-                                       const uint32_t nvertices_per_contour[],
-                                       const vertex_t vertices[],
-                                       TriangleBuffer_t &triangles)
-{
+void PolyTri::Triangulate(
+  const size_t num_contours,
+  const uint32_t nvertices_per_contour[],
+  const vertex_t vertices[],
+  TriangleBuffer_t &triangles
+) {
   assert(0u != num_contours);
   assert(nullptr != nvertices_per_contour);
   assert(nullptr != vertices);
 
-  PolygonTriangulation tri(num_contours, nvertices_per_contour, vertices);
+  PolyTri tri(num_contours, nvertices_per_contour, vertices);
   tri.trapezoidal_decomposition();
   tri.monotone_partitioning();
   tri.triangulate_monotone_polygons(triangles);
@@ -18,9 +19,11 @@ void PolygonTriangulation::Triangulate(const size_t num_contours,
 
 /* -------------------------------------------------------------------------- */
 
-PolygonTriangulation::PolygonTriangulation(const size_t num_contours,
-                                         const uint32_t nvertices_per_contour[],
-                                         const vertex_t *vertices) :
+PolyTri::PolyTri(
+  const size_t num_contours,
+  const uint32_t nvertices_per_contour[],
+  const vertex_t *vertices
+) :
   vertices_(vertices)
 {
   // Retrieve the total number of segments.
@@ -53,7 +56,7 @@ PolygonTriangulation::PolygonTriangulation(const size_t num_contours,
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::trapezoidal_decomposition()
+void PolyTri::trapezoidal_decomposition()
 {
   /// Note :
   /// Seidel's is a bit differents than that,
@@ -69,7 +72,7 @@ void PolygonTriangulation::trapezoidal_decomposition()
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::monotone_partitioning()
+void PolyTri::monotone_partitioning()
 {
   // keep track of visited trapezoids.
   visited_trapezoids_.resize(trapezoids_.size(), false);
@@ -105,7 +108,7 @@ void PolygonTriangulation::monotone_partitioning()
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
+void PolyTri::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
 {
   // Comparator struct ot find top and bottom most vertices in the list.
   struct MinMaxComparator {
@@ -137,7 +140,7 @@ void PolygonTriangulation::triangulate_monotone_polygons(TriangleBuffer_t &trian
 
 /* -------------------------------------------------------------------------- */
 
-bool PolygonTriangulation::is_angle_convex(uint32_t v0, uint32_t v1, uint32_t v2) const
+bool PolyTri::is_angle_convex(uint32_t v0, uint32_t v1, uint32_t v2) const
 {
   const auto& A = vertices_[v0];
   const auto& B = vertices_[v1];
@@ -171,10 +174,11 @@ T prev(const T &it, const T &end)
 
 /* -------------------------------------------------------------------------- */
 
-void PolygonTriangulation::triangulate_monochain(Monochain_t &monochain,
-                                                 const ChainIterator_t &first,
-                                                 TriangleBuffer_t &triangles)
-{
+void PolyTri::triangulate_monochain(
+  Monochain_t &monochain,
+  const ChainIterator_t &first,
+  TriangleBuffer_t &triangles
+) {
   const auto &end = monochain.list.end();
 
   for (auto current = next(first, end); monochain.list.size() >= 3u;) {
