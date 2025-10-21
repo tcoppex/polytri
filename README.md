@@ -4,6 +4,8 @@
 
 PolyTri is a polygon triangulator for [simple polygons](https://en.wikipedia.org/wiki/Simple_polygon) _without holes_ based on Seidel's algorithm [1].
 
+[![comparison.webp](https://i.postimg.cc/QCds9qkX/comparison.webp)](https://postimg.cc/cg2PPwbj)
+
 <!--
 ## Quickstart
 
@@ -17,7 +19,8 @@ cmake --build build
 
 # Display it on the browser.
 firefox -new-window ./tools/polygon.html
-``` -->
+```
+-->
 
 ## Usage
 
@@ -54,6 +57,9 @@ int main(int argc, char *argv[])
 }
 
 ```
+
+<!-- ## Comparison -->
+
 
 ---
 
