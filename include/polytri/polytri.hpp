@@ -17,7 +17,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define POLYTRI_DEBUG_INFO 0
+#ifndef POLYTRI_ENABLE_PERMUTATION
+#define POLYTRI_ENABLE_PERMUTATION 0
+#endif
+
+#define POLYTRI_DEBUG_INFO 1
 
 #if POLYTRI_DEBUG_INFO
 #define POLYTRI_LOG(...)  fprintf(stderr, __VA_ARGS__)

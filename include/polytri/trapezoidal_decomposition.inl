@@ -613,9 +613,10 @@ void PolyTri::init_permutation_table()
   for (auto i = 0u; i < permutation_.size(); ++i) {
     permutation_[i] = num_segments_-i-1;
   }
-#if 0
+#if POLYTRI_ENABLE_PERMUTATION
+  // 1761133065998441995
   const auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-  fprintf(stderr, "seed used : %lu\n", seed);
+  POLYTRI_LOG("seed used : %lu\n", seed);
   std::shuffle(
     permutation_.begin(), permutation_.end(), std::default_random_engine(seed)
   );
