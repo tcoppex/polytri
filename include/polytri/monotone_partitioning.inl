@@ -201,13 +201,12 @@ void PolyTri::build_monotone_chains(
   const uint32_t from_index,
   const bool go_down
 ) {
-  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, trapezoid_index, from_index, go_down);
-
   if ((kInvalidIndex == trapezoid_index)
    || (visited_trapezoids_[trapezoid_index])) {
     return;
   }
   visited_trapezoids_[trapezoid_index] = true;
+  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, trapezoid_index, from_index, go_down);
 
   const auto &trapezoid = trapezoids_[trapezoid_index];
 
