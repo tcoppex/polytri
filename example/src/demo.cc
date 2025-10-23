@@ -82,7 +82,7 @@ void ExportData(
 
 int main(int argc, char *argv[])
 {
-#if 1
+#if 0
   if (argc < 2) {
     std::cerr << "usage : " << argv[0] << " filename." << std::endl;
     return EXIT_FAILURE;
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 
   auto indices = PolyTri::Triangulate( vertices );
 
-  fprintf(stderr, "Results (indices count %u) : ", indices.size());
+  fprintf(stderr, "Results (indices count %u) : ", (uint32_t)indices.size());
   for (auto const& i : indices) {
     fprintf(stderr, "%u ", i);
   }
