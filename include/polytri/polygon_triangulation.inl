@@ -120,7 +120,11 @@ void PolyTri::monotone_partitioning()
 
 void PolyTri::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
 {
-  POLYTRI_LOG("%s\n", __FUNCTION__);
+  POLYTRI_LOG("\n((%s))\n", __FUNCTION__);
+
+  if (monochains_.empty()) {
+    return;
+  }
 
   // Comparator struct ot find top and bottom most vertices in the list.
   struct MinMaxComparator {
@@ -135,8 +139,30 @@ void PolyTri::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
     vertex_t const* data{};
   } cmp(vertices_);
 
+  /* Merge sequential monochains. */
+  for (auto it = monochains_.begin(); it != monochains_.end();) {
+    auto next = std::next(it);
+    if (next == monochains_.end()) break;
+
+    if (!it->list.empty() && !next->list.empty() &&
+      it->list.back() == next->list.front()) {
+
+      it->list.pop_back();
+      it->list.splice(it->list.end(), next->list);
+      next = monochains_.erase(next);
+    } else {
+      ++it;
+    }
+  }
+
+  POLYTRI_LOG("There is %u monochains.\n", (uint32_t)monochains_.size());
+
+
   // Triangulate each monochains.
+  uint32_t m_index = 0;
   for (auto& m : monochains_) {
+    POLYTRI_LOG("swapchain %u, size %u\n", m_index++, (uint32_t)m.list.size());
+
     // find the topmost vertex of the monochain.
     const auto min_max = std::minmax_element(m.list.begin(), m.list.end(), cmp);
 
