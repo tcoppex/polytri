@@ -195,7 +195,7 @@ class PolyTri {
 
   // Return true if trapezoid is a top inside triangle.
   [[nodiscard]]
-  bool is_top_inside_triangle(const Trapezoid_t &trapezoid) const;
+  bool is_top_inside_triangle(uint32_t const trap_index) const;
 
   // Return true if trapezoid is a top triangle.
   [[nodiscard]]

@@ -15,9 +15,16 @@ PolyTri::InsertionSide_t PolyTri::GetIntersectionSide(
 uint32_t PolyTri::find_top_inside_trapezoid_index() const {
   POLYTRI_LOG("%s\n", __FUNCTION__);
 
-  /// @bug : currently outside top triangle can be returned.
+  // Notes:
+  //
+  // - We could store top trapezoid on construction to avoid looking
+  // into all of them.
+  //
+  // - outside top triangle might be returned currently ?
+  //
+
   for (uint32_t i = 0u; i < trapezoids_.size(); ++i) {
-    if (is_top_inside_triangle(trapezoids_[i])) {
+    if (is_top_inside_triangle(i)) {
       return i;
     }
   }
