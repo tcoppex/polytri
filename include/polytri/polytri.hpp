@@ -166,8 +166,15 @@ class PolyTri {
   };
 
   struct Monochain_t {
-    InsertionSide_t insertion_side;
-    Chain_t list;
+    Monochain_t() = default;
+
+    Monochain_t(InsertionSide_t side, std::initializer_list<uint32_t> start)
+      : insertion_side(side)
+      , list(start)
+    {}
+
+    InsertionSide_t insertion_side{};
+    Chain_t list{};
   };
 
   static
@@ -175,6 +182,16 @@ class PolyTri {
     const bool min_is_right,
     const bool go_down
   );
+
+#if POLYTRI_DEBUG_INFO
+  static
+  const char* ToStr(MergeSide_t const& side) {
+    return (side == MergeLeft) ? "MergeLeft"
+         : (side == MergeRight) ? "MergeRight"
+         : "MergeEnd"
+         ;
+  }
+#endif
 
  private:
   PolyTri(

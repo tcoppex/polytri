@@ -87,12 +87,8 @@ PolyTri::Monochain_t* PolyTri::create_monochain(
   /// follow the sames rules ]
   ///
 
-  monochains_.emplace_back();
-  auto *monochain = &monochains_.back();
-  monochain->insertion_side = side;
-  monochain->list.push_back(first_index);
-  monochain->list.push_back(second_index);
-  return monochain;
+  monochains_.emplace_back(Monochain_t(side, {first_index, second_index}));
+  return &monochains_.back();
 }
 
 /* -------------------------------------------------------------------------- */
