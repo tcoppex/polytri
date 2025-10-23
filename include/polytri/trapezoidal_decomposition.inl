@@ -24,22 +24,27 @@ bool is_vertex_lower(
 
 /* -------------------------------------------------------------------------- */
 
-bool PolyTri::is_top_inside_triangle(const Trapezoid_t &trapezoid) const
+bool PolyTri::is_top_inside_triangle(uint32_t const trap_index) const
 {
-  POLYTRI_LOG("(%s)\n", __FUNCTION__);
+  POLYTRI_LOG("%s((trap_index) %u))\n", __FUNCTION__, trap_index);
+
+  auto const& trapezoid = trapezoids_[trap_index];
 
   // Check if border segments are in direct order.
   if (is_top_triangle(trapezoid)) {
     auto const side0 = (trapezoid.left_segment + num_segments_ - 1u) % num_segments_;
     auto const side1 = (trapezoid.right_segment + 1u) % num_segments_;
 
-    POLYTRI_LOG("> is top, side0 = %d, side1 = %d (L = %u, R = %u)\n",
-      side0, side1, trapezoid.left_segment, trapezoid.right_segment
+    bool is_inside = (side0 == trapezoid.right_segment)
+                  && (side1 == trapezoid.left_segment)
+                  ;
+
+    POLYTRI_LOG("> Trapezoid %u is top and%s inside. left-right segments : %u /\\ %u\n",
+      trap_index, is_inside? "": " not",
+      trapezoid.left_segment, trapezoid.right_segment
     );
 
-    return (side0 == trapezoid.right_segment)
-        && (side1 == trapezoid.left_segment)
-        ;
+    return is_inside;
   }
   return false;
 }
@@ -62,7 +67,7 @@ bool PolyTri::is_top_triangle(const Trapezoid_t &trapezoid) const
 
   if ((left_maxy == right.v0)
    || (left_maxy == right.v1)) {
-    POLYTRI_LOG("%s: right segment has left max y\n", __FUNCTION__);
+    POLYTRI_LOG("%s: right segment has LEFT_MAX_Y\n", __FUNCTION__);
     return true;
   }
 
@@ -87,7 +92,7 @@ bool PolyTri::is_bottom_triangle(const Trapezoid_t &trapezoid) const
 
   if ((left_miny == right.v0)
    || (left_miny == right.v1)) {
-    POLYTRI_LOG("%s right segment has left min y\n", __FUNCTION__);
+    POLYTRI_LOG("%s: right segment has LEFT_MIN_Y\n", __FUNCTION__);
     return true;
   }
 
@@ -363,7 +368,8 @@ void PolyTri::update_xsplit_trapezoid_neighbors(
   const uint32_t left_trap_index,
   const uint32_t right_trap_index
 ) {
-  POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, side, left_trap_index, right_trap_index);
+  POLYTRI_LOG("%s(%s, %d, %d)\n",
+    __FUNCTION__, ToStr(side), left_trap_index, right_trap_index);
 
   auto &left_trap = trapezoids_[left_trap_index];
   auto &right_trap = trapezoids_[right_trap_index];
@@ -482,11 +488,10 @@ void PolyTri::split_merge_trapezoids(
   QNode_t *left_fusion_node,
   QNode_t *right_fusion_node
 ) {
-  // POLYTRI_LOG(
-  //   "%s %d %d %d %p %p\n", __FUNCTION__,
-  //   segment_index, end_y_index, trapezoid_index,
-  //   (void*)left_fusion_node, (void*)right_fusion_node
-  // );
+  POLYTRI_LOG(
+    "%s((segment id) %u, (end_y_id) %u, (trap_id)%u)\n", __FUNCTION__,
+    segment_index, end_y_index, trapezoid_index
+  );
 
   auto &trapezoid = trapezoids_[trapezoid_index];
   assert(kInvalidIndex != trapezoid_index);
@@ -529,9 +534,9 @@ void PolyTri::split_merge_trapezoids(
                                                      : MergeEnd
                                                      ;
 
-  POLYTRI_LOG("sub-split X (trap %d) : left-right trap  %d / %d || side %d\n",
-    trapezoid_index, left_trap_index, right_trap_index, side
-  );
+  // POLYTRI_LOG("> sub-split X (trap %d) : left-right trap  %d / %d || %s\n",
+  //   trapezoid_index, left_trap_index, right_trap_index, ToStr(side)
+  // );
 
   // Update neighborhood depending on the next fusion side.
   update_xsplit_trapezoid_neighbors(side, left_trap_index, right_trap_index);
@@ -580,6 +585,10 @@ void PolyTri::thread_endpoints(
 ) {
   // Recursively split and merge trapezoids intersecting the segment.
 
+  POLYTRI_LOG("\n%s((segment_id) %u, (max_y_id) %u, (min_y_id) %u)\n",
+    __FUNCTION__, segment_index, max_y_index, min_y_index
+  );
+
   // To find the top trapezoid we need to offset the first vertex in the direction
   // of the segment, to distinct between left/right trapezoids neighbors.
   vertex_t v{};
@@ -625,15 +634,19 @@ void PolyTri::thread_endpoints(
   split_merge_trapezoids(
     segment_index, min_y_index, top_trapezoid_index, nullptr, new_sink
   );
+  POLYTRI_LOG("(end split_merge_trapezoids)\n");
+  POLYTRI_LOG("Is the top trapezoid a top triangle ??\n");
 
   // Close connections with above trapezoid when one of the start trapezoids
   // (left or right) is a triangle.
   if (is_top_triangle(top_trapezoid)) {
-    POLYTRI_LOG("> top trap is top\n");
+    POLYTRI_LOG("> Yes (top trapezoid)\n");
     top_trapezoid.above1 = kInvalidIndex;
   } else if (is_top_triangle(new_trapezoid)) {
-    POLYTRI_LOG("> new trap is top\n");
+    POLYTRI_LOG("> Yes (new trapezoid)\n");
     new_trapezoid.above1 = kInvalidIndex;
+  } else {
+    POLYTRI_LOG("> No\n");
   }
 }
 
@@ -656,7 +669,7 @@ void PolyTri::add_segment_to_query_structure(const uint32_t segment_index)
 void PolyTri::init_permutation_table()
 {
   // assert(num_segments_ == segments_.size());
-  POLYTRI_LOG("%s %d %lu\n", __FUNCTION__, num_segments_, segments_.size());
+  POLYTRI_LOG("%s %d\n", __FUNCTION__, num_segments_);
 
   permutation_.resize(num_segments_);
   for (uint32_t i = 0u; i < num_segments_; ++i) {

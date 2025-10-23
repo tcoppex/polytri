@@ -43,8 +43,10 @@ void PolyTri::add_vertex_to_monochain(
 
   /// To insert vertices in direct order we look for the direction.
   if ((InsertRight == monochain->insertion_side) == go_down) {
+    POLYTRI_LOG("> %s: push vertex %u back\n", __FUNCTION__, vertex_index);
     monochain->list.push_back(vertex_index);
   } else {
+    POLYTRI_LOG("> %s: push vertex %u front\n", __FUNCTION__, vertex_index);
     monochain->list.push_front(vertex_index);
   }
 }
@@ -56,7 +58,9 @@ PolyTri::Monochain_t* PolyTri::create_monochain(
     const uint32_t second_index,
     const InsertionSide_t side
 ) {
-  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, first_index, second_index, side);
+  POLYTRI_LOG("! %s((first vertices) %u -> %u, (insertion side) %s)\n", __FUNCTION__,
+    first_index, second_index, (side == InsertLeft) ? "left" : "right"
+  );
 
   /// * For a monochain, vertices are always added to the same side, left or right.
   /// This is due to the nature of monochain and the vertical trapezoidation.
@@ -93,13 +97,13 @@ void PolyTri::select_monotone_path(
   const bool go_down,
   const bool come_from_left
 ) {
-  // POLYTRI_LOG("%s(%d, %d, %d)\n", __FUNCTION__, trapezoid_index, go_down, come_from_left);
-
   const auto &trapezoid = trapezoids_[trapezoid_index];
-  POLYTRI_LOG(
-    "  > left_segment = %u || right_segment = %u\n",
-    trapezoid.left_segment, trapezoid.right_segment
-  );
+
+  POLYTRI_LOG("%s((trap_id) %u)\n", __FUNCTION__, trapezoid_index);
+  // POLYTRI_LOG(
+  //   "  > left-right segments = %u | %u\n",
+  //   trapezoid.left_segment, trapezoid.right_segment
+  // );
 
   assert(kInvalidIndex != trapezoid.left_segment);
   assert(kInvalidIndex != trapezoid.right_segment);
@@ -126,6 +130,8 @@ void PolyTri::select_monotone_path(
     top_right = (tr_max == right_max_y);
     btm_right = (tr_min == right_min_y);
   }
+
+  POLYTRI_LOG("> %d%d%d%d\n", top_left, btm_left, top_right, btm_right);
 
   const bool top_middle = (!top_left && !top_right);
   const bool btm_middle = (!btm_left && !btm_right);

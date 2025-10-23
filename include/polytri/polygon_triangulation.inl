@@ -64,6 +64,8 @@ PolyTri::PolyTri(
 
 void PolyTri::trapezoidal_decomposition()
 {
+  POLYTRI_LOG("\n((%s))\n", __FUNCTION__);
+
   /// Note :
   /// The original paper is a bit different than that,
   /// it use two loops to construct the trapezoidation in log*(n) with some tricks.
@@ -80,37 +82,51 @@ void PolyTri::trapezoidal_decomposition()
 
 void PolyTri::monotone_partitioning()
 {
-  POLYTRI_LOG("\n%s\n", __FUNCTION__);
+  POLYTRI_LOG("\n((%s))\n", __FUNCTION__);
 
   // keep track of visited trapezoids.
   visited_trapezoids_.resize(trapezoids_.size(), false);
 
   // we start partitioning on a top triangle.
   const auto start_tr = find_top_inside_trapezoid_index();
-  POLYTRI_LOG("start_trap_index : %u\n", start_tr);
   assert(kInvalidIndex != start_tr);
 
   visited_trapezoids_[start_tr] = true;
 
-  // recursively build monotone chain.
   const auto &trapezoid = trapezoids_[start_tr];
-  const auto tr_min = trapezoid.min_y;
   const auto tr_max = trapezoid.max_y;
+  const auto tr_min = trapezoid.min_y;
+  POLYTRI_LOG("> below1 %u | below2 %u\n", trapezoid.below1, trapezoid.below2);
+  POLYTRI_LOG("> max seg %u | min seg %u\n", tr_max, tr_min);
 
+  // recursively build monotone chain.
   if (kInvalidIndex != trapezoid.below2) {
+
+    /// -----------------------------------------
+
+    POLYTRI_LOG("\n>> create_monochain below1 RIGHT\n");
     auto *monochain = create_monochain(tr_max, tr_min, InsertRight);
     build_monotone_chains(monochain, trapezoid.below1, start_tr, true);
 
+    POLYTRI_LOG("\n>> create_monochain below2 LEFT\n");
     monochain = create_monochain(tr_min, tr_max, InsertLeft);
     build_monotone_chains(monochain, trapezoid.below2, start_tr, true);
+
+    /// -----------------------------------------
+
   } else {
+    POLYTRI_LOG(">> trapezoid below 2 does not exist**\n");
+
     const auto& right_segment = segments_[trapezoid.right_segment];
-    uint32_t max_y, min_y;
+    uint32_t max_y{}, min_y{};
     get_max_min_y_indices(right_segment, max_y, min_y);
 
-    const auto right = (tr_min == min_y) ? tr_min : tr_max;
-    const auto left  = (tr_min == min_y) ? tr_max : tr_min;
-    const auto side  = (tr_min == min_y) ? InsertRight : InsertLeft;
+    const bool is_min_seg_min_y = (tr_min == min_y);
+    const auto right = is_min_seg_min_y ? tr_min : tr_max;
+    const auto left  = is_min_seg_min_y ? tr_max : tr_min;
+    const auto side  = is_min_seg_min_y ? InsertRight : InsertLeft;
+
+    POLYTRI_LOG(">> create_monochain below1\n");
     auto *monochain = create_monochain(left, right, side);
     build_monotone_chains(monochain, trapezoid.below1, start_tr, true);
   }
@@ -173,7 +189,7 @@ void PolyTri::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
     };
     triangulate_monochain(m, start_it, triangles);
   }
-  POLYTRI_LOG("finished trimonotpol\n");
+  POLYTRI_LOG("(end triangulate_monotone_polygons)\n");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -217,10 +233,11 @@ void PolyTri::triangulate_monochain(
   const ChainIterator_t &first,
   TriangleBuffer_t &triangles
 ) {
+  POLYTRI_LOG("(%s)\n", __FUNCTION__);
+
   const auto &end = monochain.list.end();
 
   size_t prevsize = monochain.list.size();
-
   for (auto current = next(first, end); prevsize >= 3u; ) {
     const auto v0 = *prev(current, end);
     const auto v1 = *current;
@@ -232,12 +249,16 @@ void PolyTri::triangulate_monochain(
 
     if (is_convex) {
       triangles.push_back(tri);
+      POLYTRI_LOG("> new triangle (%u %u %u).\n", tri.v0, tri.v1, tri.v2);
 
       // remove current vertex from the chain and update position.
       const auto &save = prev(current, end);
       monochain.list.erase(current);
       current = (first == save) ? next(first, end) : save;
+
     } else {
+      POLYTRI_LOG("> triangle (%u %u %u) has bad orientation..\n", tri.v0, tri.v1, tri.v2);
+
       current = next(current, end);
     }
 
