@@ -82,7 +82,7 @@ void ExportData(
 
 int main(int argc, char *argv[])
 {
-#if 1
+#if 0
   if (argc < 2) {
     std::cerr << "usage : " << argv[0] << " filename." << std::endl;
     return EXIT_FAILURE;
@@ -105,16 +105,18 @@ int main(int argc, char *argv[])
 
   ExportData(triangles, vertices);
 #else
-  std::vector<std::vector<vertex_t>> vertices = {
+  // Polygons vertices must be in counter clockwise order.
+  std::vector<std::vector<PolyTri::vertex_t>> vertices = {
     {
-       {0.0, 2.0}, {1.0, -0.5}, {-1.0, 0.0},// {0.0, 2.0}
+      {-10.0, -9.0}, {11.0, -12.0}, {0.0, 8.0}, {-5.0, 11.0}
     }
   };
 
   auto indices = PolyTri::Triangulate( vertices );
 
+  fprintf(stderr, "Results (indices count %u) : ", (uint32_t)indices.size());
   for (auto const& i : indices) {
-    fprintf(stderr, "%d ", i);
+    fprintf(stderr, "%u ", i);
   }
   fprintf(stderr, "\n");
 #endif

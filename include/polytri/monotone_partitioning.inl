@@ -93,30 +93,40 @@ void PolyTri::select_monotone_path(
   const bool go_down,
   const bool come_from_left
 ) {
-  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, trapezoid_index, go_down, come_from_left);
+  // POLYTRI_LOG("%s(%d, %d, %d)\n", __FUNCTION__, trapezoid_index, go_down, come_from_left);
 
   const auto &trapezoid = trapezoids_[trapezoid_index];
+  POLYTRI_LOG(
+    "  > left_segment = %u || right_segment = %u\n",
+    trapezoid.left_segment, trapezoid.right_segment
+  );
 
   assert(kInvalidIndex != trapezoid.left_segment);
   assert(kInvalidIndex != trapezoid.right_segment);
 
   // Check if a break occured.
-  uint32_t left_max_y{}, left_min_y{};
-  uint32_t right_max_y{}, right_min_y{};
 
-  const auto &left_segment = segments_[trapezoid.left_segment];
-  get_max_min_y_indices(left_segment, left_max_y, left_min_y);
-
-  const auto &right_segment = segments_[trapezoid.right_segment];
-  get_max_min_y_indices(right_segment, right_max_y, right_min_y);
-
-  const auto tr_min = trapezoid.min_y;
   const auto tr_max = trapezoid.max_y;
+  const auto tr_min = trapezoid.min_y;
 
-  const bool top_left = (tr_max == left_max_y);
-  const bool btm_left = (tr_min == left_min_y);
-  const bool top_right = (tr_max == right_max_y);
-  const bool btm_right = (tr_min == right_min_y);
+  bool top_left{}, btm_left{};
+  if (kInvalidIndex != trapezoid.left_segment) {
+    uint32_t left_max_y{}, left_min_y{};
+    const auto &left_segment = segments_[trapezoid.left_segment];
+    get_max_min_y_indices(left_segment, left_max_y, left_min_y);
+    top_left = (tr_max == left_max_y);
+    btm_left = (tr_min == left_min_y);
+  }
+
+  bool top_right{}, btm_right{};
+  if (kInvalidIndex != trapezoid.right_segment) {
+    uint32_t right_max_y{}, right_min_y{};
+    const auto &right_segment = segments_[trapezoid.right_segment];
+    get_max_min_y_indices(right_segment, right_max_y, right_min_y);
+    top_right = (tr_max == right_max_y);
+    btm_right = (tr_min == right_min_y);
+  }
+
   const bool top_middle = (!top_left && !top_right);
   const bool btm_middle = (!btm_left && !btm_right);
   const bool top_triangle = (top_left && top_right);
@@ -201,13 +211,12 @@ void PolyTri::build_monotone_chains(
   const uint32_t from_index,
   const bool go_down
 ) {
-  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, trapezoid_index, from_index, go_down);
-
   if ((kInvalidIndex == trapezoid_index)
    || (visited_trapezoids_[trapezoid_index])) {
     return;
   }
   visited_trapezoids_[trapezoid_index] = true;
+  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, trapezoid_index, from_index, go_down);
 
   const auto &trapezoid = trapezoids_[trapezoid_index];
 

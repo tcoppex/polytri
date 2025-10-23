@@ -23,8 +23,7 @@ PolyTri::PolyTri(
   const size_t num_contours,
   const uint32_t nvertices_per_contour[],
   const vertex_t *vertices
-) :
-  vertices_(vertices)
+) : vertices_(vertices)
 {
   // Retrieve the total number of segments.
   num_segments_ = 0u;
@@ -35,22 +34,29 @@ PolyTri::PolyTri(
   // Initialize the list of segments.
   segments_.resize(num_segments_);
 
-  uint32_t vid = 0u;
+  uint32_t index = 0u;
   for (auto cid = 0u; cid < num_contours; ++cid) {
     const auto nverts = nvertices_per_contour[cid];
 
     // special case for first segment : save first id.
-    uint32_t first_vid = vid;
-    segments_[vid].v0 = first_vid;
-    segments_[vid].v1 = vid+1u;
-    ++vid;
+    uint32_t const first_index = index;
+
+    segments_[first_index] = {
+      .v0 = first_index,
+      .v1 = first_index + 1u,
+    };
+    ++index;
+
     for (auto i = 1u; i < nverts; ++i) {
-      segments_[vid].v0 = segments_[vid-1u].v1;
-      segments_[vid].v1 = vid+1u;
-      ++vid;
+      segments_[index] = {
+        .v0 = segments_[index - 1u].v1,
+        .v1 = index + 1u
+      };
+      ++index;
     }
-    // special case for last segment : change last vertex id.
-    segments_[vid-1u].v1 = first_vid;
+
+    // special case for last segment : update last vertex id.
+    segments_[index - 1u].v1 = first_index;
   }
 }
 
@@ -59,7 +65,7 @@ PolyTri::PolyTri(
 void PolyTri::trapezoidal_decomposition()
 {
   /// Note :
-  /// Seidel's is a bit differents than that,
+  /// The original paper is a bit different than that,
   /// it use two loops to construct the trapezoidation in log*(n) with some tricks.
 
   init_permutation_table();
@@ -74,11 +80,14 @@ void PolyTri::trapezoidal_decomposition()
 
 void PolyTri::monotone_partitioning()
 {
+  POLYTRI_LOG("\n%s\n", __FUNCTION__);
+
   // keep track of visited trapezoids.
   visited_trapezoids_.resize(trapezoids_.size(), false);
 
   // we start partitioning on a top triangle.
   const auto start_tr = find_top_inside_trapezoid_index();
+  POLYTRI_LOG("start_trap_index : %u\n", start_tr);
   assert(kInvalidIndex != start_tr);
 
   visited_trapezoids_[start_tr] = true;
@@ -111,32 +120,34 @@ void PolyTri::monotone_partitioning()
 
 void PolyTri::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
 {
+  POLYTRI_LOG("%s\n", __FUNCTION__);
+
   // Comparator struct ot find top and bottom most vertices in the list.
   struct MinMaxComparator {
     MinMaxComparator(const vertex_t vertices[]) :
       data(vertices)
     {}
-    bool operator() (const uint32_t &a, const uint32_t &b) {
-      return data[a].y < data[b].y;
+    bool operator() (const uint32_t &i0, const uint32_t &i1) const noexcept {
+      return data[i0].y < data[i1].y
+          || ((fabs(data[i0].y - data[i1].y) < DBL_EPSILON) && (data[i0].x < data[i1].x))
+           ;
     }
-    vertex_t const* data;
+    vertex_t const* data{};
   } cmp(vertices_);
 
   // Triangulate each monochains.
   for (auto& m : monochains_) {
-    // find topmost vertex of the monochain
+    // find the topmost vertex of the monochain.
     const auto min_max = std::minmax_element(m.list.begin(), m.list.end(), cmp);
 
     // first vertex to use depends on the main edge side (opposite to insertion side).
     // Bottommost if insertion is on the left, topmost otherwise.
-    ChainIterator_t start_it;
-    if (m.insertion_side == InsertLeft) {
-      start_it = min_max.first;
-    } else {
-      start_it = min_max.second;
-    }
+    ChainIterator_t start_it{
+      (m.insertion_side == InsertLeft) ? min_max.first : min_max.second
+    };
     triangulate_monochain(m, start_it, triangles);
   }
+  POLYTRI_LOG("finished trimonotpol\n");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -148,7 +159,7 @@ bool PolyTri::is_angle_convex(uint32_t v0, uint32_t v1, uint32_t v2) const
   const auto& C = vertices_[v2];
 
   const auto det = (B.x - A.x) * (C.y - B.y) - (B.y - A.y) * (C.x - B.x);
-  return det <= 0.0;
+  return 0.0 < det;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -182,13 +193,20 @@ void PolyTri::triangulate_monochain(
 ) {
   const auto &end = monochain.list.end();
 
-  for (auto current = next(first, end); monochain.list.size() >= 3u;) {
+  size_t prevsize = monochain.list.size();
+
+  for (auto current = next(first, end); prevsize >= 3u; ) {
     const auto v0 = *prev(current, end);
     const auto v1 = *current;
     const auto v2 = *next(current, end);
 
-    if (is_angle_convex(v0, v1, v2)) {
-      triangles.push_back(triangle_t(v0, v1, v2));
+    const auto tri = triangle_t(v2, v1, v0); //
+
+    const bool is_convex = is_angle_convex(tri.v0, tri.v1, tri.v2);
+
+    if (is_convex) {
+      triangles.push_back(tri);
+
       // remove current vertex from the chain and update position.
       const auto &save = prev(current, end);
       monochain.list.erase(current);
@@ -196,6 +214,15 @@ void PolyTri::triangulate_monochain(
     } else {
       current = next(current, end);
     }
+
+    // ----------------
+    // [debug way to break out of an infinite loop]
+    // if (prevsize == monochain.list.size()) {
+    //   POLYTRI_LOG(">> break to avoid an infinite loop <<\n");
+    //   break;
+    // }
+    prevsize = monochain.list.size();
+    // ----------------
   }
 }
 

@@ -17,6 +17,10 @@
 
 // ----------------------------------------------------------------------------
 
+#ifndef POLYTRI_ENABLE_PERMUTATION
+#define POLYTRI_ENABLE_PERMUTATION 0
+#endif
+
 #define POLYTRI_DEBUG_INFO 0
 
 #if POLYTRI_DEBUG_INFO
@@ -37,22 +41,23 @@ class PolyTri {
   };
 
   struct segment_t {
-    segment_t() = default;
-    segment_t(uint32_t _v0, uint32_t _v1) : v0(_v0), v1(_v1) {}
     uint32_t v0{};
     uint32_t v1{};
   };
 
   struct triangle_t {
     triangle_t() = default;
-    triangle_t(uint32_t _v0, uint32_t _v1, uint32_t _v2) : v0(_v0), v1(_v1), v2(_v2) {}
+    triangle_t(uint32_t _v0, uint32_t _v1, uint32_t _v2)
+      : v0(_v0), v1(_v1), v2(_v2)
+    {}
     uint32_t v0{};
     uint32_t v1{};
     uint32_t v2{};
   };
 
  public:
-  typedef std::vector<triangle_t> TriangleBuffer_t;
+  using TriangleBuffer_t = std::vector<triangle_t>;
+
   /**
    * num_contours : number of contours and size of the nvertices_per_contour array.
    * nvertices_per_contour : array of num_contour, each cell contain the number of
@@ -60,21 +65,22 @@ class PolyTri {
    * vertices : a set of sequentially ordered 2d floating point coordinates to triangulate.
    * triangles : a buffer of indices where the triangles faces will be output.
    */
-  static void Triangulate(const size_t num_contours,
-                          const uint32_t nvertices_per_contour[],
-                          const vertex_t *vertices,
-                          TriangleBuffer_t &triangles);
+  static void Triangulate(
+    const size_t num_contours,
+    const uint32_t nvertices_per_contour[],
+    const vertex_t *vertices,
+    TriangleBuffer_t &triangles
+  );
 
-#if 1
   /* mapbox/earcut type interface */
-  template </*typename N = uint32_t,*/ typename Polygon>
-  static std::vector<uint32_t> Triangulate(Polygon const& poly) {
-    size_t const NPOLY = poly.size();
+  template </*typename N = uint32_t,*/ typename P>
+  static std::vector<uint32_t> Triangulate(P const& polys) {
+    size_t const NPOLY = polys.size();
 
     std::vector<uint32_t> contour_lengths;
     uint32_t totalLength = 0;
     for (size_t j = 0; j < NPOLY; ++j) {
-      auto const& p = poly[j];
+      auto const& p = polys[j];
       auto const clen = static_cast<uint32_t>(p.size());
       totalLength += clen;
       contour_lengths.push_back(clen);
@@ -84,7 +90,7 @@ class PolyTri {
     vertices.reserve(totalLength);
 
     for (size_t j = 0; j < NPOLY; ++j) {
-      auto const& p = poly[j];
+      auto const& p = polys[j];
 
       for (size_t i = 0; i < p.size(); ++i) {
         auto const& v = p[i];
@@ -111,11 +117,10 @@ class PolyTri {
     std::vector<uint32_t> indices{};
     indices.reserve(3 * triangles.size());
     for (auto const& t : triangles) {
-      indices.insert(indices.end(), {t.v2, t.v1, t.v0});
+      indices.insert(indices.end(), {t.v0, t.v1, t.v2}); //
     }
     return indices;
   }
-#endif
 
  private:
   static const uint32_t kInvalidIndex = UINT32_MAX;
@@ -152,8 +157,8 @@ class PolyTri {
     QNode_t *sink = nullptr;
   };
 
-  typedef std::list<uint32_t> Chain_t;
-  typedef Chain_t::iterator ChainIterator_t;
+  using Chain_t = std::list<uint32_t>;
+  using ChainIterator_t = Chain_t::iterator;
 
   enum InsertionSide_t {
     InsertLeft,
@@ -171,6 +176,7 @@ class PolyTri {
     const bool go_down
   );
 
+ private:
   PolyTri(
     const size_t num_contours,
     const uint32_t nvertices_per_contour[],
