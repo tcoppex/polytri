@@ -4,7 +4,7 @@
 
 # polytri
 
-_**polytri**_ is a polygon triangulator for [simple polygons](https://en.wikipedia.org/wiki/Simple_polygon) _without holes_ based on Seidel's algorithm [1].
+_**polytri**_ is a polygon triangulator for [simple polygons](https://en.wikipedia.org/wiki/Simple_polygon) _without holes_ based on Raimund Seidel's algorithm [1].
 
 
 [![comparison.webp](https://i.postimg.cc/QCds9qkX/comparison.webp)](https://postimg.cc/cg2PPwbj)
@@ -45,8 +45,9 @@ using Contour_t = std::vector<Vertex_t<T>>;
 
 int main(int argc, char *argv[])
 {
+  /* Contour must be in counter clockwise order. */
   std::vector<Contour_t<float>> polygons = {
-    { {0.0, 2.0}, {1.0, -0.5}, {-1.0, 0.0}, {-4.0, 2.0} }
+    { {-10.0, -9.0}, {11.0, -12.0}, {0.0, 8.0}, {-5.0, 11.0} }
   };
 
   auto indices = PolyTri::Triangulate( polygons );
