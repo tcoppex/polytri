@@ -27,12 +27,10 @@ uint32_t PolyTri::find_top_inside_trapezoid_index() const {
 /* -------------------------------------------------------------------------- */
 
 void PolyTri::add_vertex_to_monochain(
-    const Trapezoid_t &trapezoid,
-    const bool go_down,
-    Monochain_t *monochain
+  const Trapezoid_t &trapezoid,
+  const bool go_down,
+  Monochain_t *monochain
 ) {
-  // POLYTRI_LOG("%s %d %p\n", __FUNCTION__, go_down, (void*)monochain);
-
   /// * Insertion order depends on the side :
   /// When is left : up pushed back, down pushed front
   /// When is right : down pushed back, up pushed front
@@ -222,7 +220,9 @@ void PolyTri::build_monotone_chains(
     return;
   }
   visited_trapezoids_[trapezoid_index] = true;
-  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, trapezoid_index, from_index, go_down);
+
+  POLYTRI_LOG("%s((trap_id) %u, (from_id) %u, %s)\n", __FUNCTION__,
+    trapezoid_index, from_index, go_down ? "go down" : "go up");
 
   const auto &trapezoid = trapezoids_[trapezoid_index];
 

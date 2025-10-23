@@ -12,8 +12,13 @@ void PolyTri::Triangulate(
   assert(nullptr != vertices);
 
   PolyTri tri(num_contours, nvertices_per_contour, vertices);
+
   tri.trapezoidal_decomposition();
+
+  // If we assume trapezoid_decomposition is correct, the issues
+  // come probably from here.
   tri.monotone_partitioning();
+
   tri.triangulate_monotone_polygons(triangles);
 }
 
@@ -102,8 +107,6 @@ void PolyTri::monotone_partitioning()
   // recursively build monotone chain.
   if (kInvalidIndex != trapezoid.below2) {
 
-    /// -----------------------------------------
-
     POLYTRI_LOG("\n>> create_monochain below1 RIGHT\n");
     auto *monochain = create_monochain(tr_max, tr_min, InsertRight);
     build_monotone_chains(monochain, trapezoid.below1, start_tr, true);
@@ -111,8 +114,6 @@ void PolyTri::monotone_partitioning()
     POLYTRI_LOG("\n>> create_monochain below2 LEFT\n");
     monochain = create_monochain(tr_min, tr_max, InsertLeft);
     build_monotone_chains(monochain, trapezoid.below2, start_tr, true);
-
-    /// -----------------------------------------
 
   } else {
     POLYTRI_LOG(">> trapezoid below 2 does not exist**\n");
