@@ -12,12 +12,12 @@ bool is_vertex_lower(
 #endif
 
   // assert((fabs(a.x-b.x) > DBL_EPSILON) || (fabs(a.y-b.y) > DBL_EPSILON));
-  if (!((fabs(a.x-b.x) > DBL_EPSILON) || (fabs(a.y-b.y) > DBL_EPSILON))) {
+  if ((fabs(a.x-b.x) <= DBL_EPSILON) && (fabs(a.y-b.y) <= DBL_EPSILON)) {
     fprintf(stderr, "a %.3f %.3f / b %.3f %.3f\n", a.x, a.y, b.x, b.y);
     assert(0 && "Two vertices are the same");
   }
 
-  return ((a.y < b.y) || ((fabs(a.y-b.y) < DBL_EPSILON) && (a.x < b.x)));
+  return ((a.y < b.y) || ((fabs(a.y-b.y) <= DBL_EPSILON) && (a.x < b.x)));
 }
 
 }
@@ -316,8 +316,8 @@ PolyTri::QNode_t* PolyTri::fusion_sinks(
   top_trap.below1 = btm_trap.below1;
   top_trap.below2 = btm_trap.below2;
 
-  //top_trap.above1 = (kInvalidIndex != top_trap.above2) ? top_trap.above2 : top_trap.above1;
-  //top_trap.above2 = kInvalidIndex; //
+  // top_trap.above1 = (kInvalidIndex != top_trap.above2) ? top_trap.above2 : top_trap.above1;
+  // top_trap.above2 = kInvalidIndex; //
 
   return top_sink;
 }
@@ -330,12 +330,13 @@ void PolyTri::update_trapezoid_aboves(
 ) {
   // POLYTRI_LOG("%s %d\n", __FUNCTION__, trapezoid_index);
 
-  below.above1 = (trapezoid_index == below.above1) ? kInvalidIndex
-                                                   : below.above1
-                                                   ;
-  below.above2 = (trapezoid_index == below.above2) ? kInvalidIndex
-                                                   : below.above2
-                                                   ;
+  if (below.above1 == trapezoid_index) {
+    below.above1 = kInvalidIndex;
+  }
+
+  if (below.above2 == trapezoid_index) {
+    below.above2 = kInvalidIndex;
+  }
 
 #if 0
   if (kInvalidIndex == below.above1) {
@@ -352,7 +353,7 @@ void PolyTri::update_xsplit_trapezoid_neighbors(
   const uint32_t left_trap_index,
   const uint32_t right_trap_index
 ) {
-  // POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, side, left_trap_index, right_trap_index);
+  POLYTRI_LOG("%s %d %d %d\n", __FUNCTION__, side, left_trap_index, right_trap_index);
 
   auto &left_trap = trapezoids_[left_trap_index];
   auto &right_trap = trapezoids_[right_trap_index];
@@ -361,8 +362,8 @@ void PolyTri::update_xsplit_trapezoid_neighbors(
   // we need 'aboves' only for monotonization.
 
   if (side == MergeLeft) {
-
     update_trapezoid_aboves(left_trap_index, trapezoids_[left_trap.below1]);
+
     if (kInvalidIndex != left_trap.below2) {
       update_trapezoid_aboves(left_trap_index, trapezoids_[left_trap.below2]);
     }
@@ -373,8 +374,8 @@ void PolyTri::update_xsplit_trapezoid_neighbors(
     right_trap.below2 = left_trap.below2;
     left_trap.below2 = kInvalidIndex;
 
-    auto &right_below1 = trapezoids_[right_trap.below1];
-    right_below1.above1 = right_trap_index;
+    auto &below1 = trapezoids_[right_trap.below1];
+    below1.above1 = right_trap_index;
 
     if (kInvalidIndex != right_trap.below2) {
       trapezoids_[right_trap.below2].above1 = right_trap_index;
@@ -392,6 +393,7 @@ void PolyTri::update_xsplit_trapezoid_neighbors(
     right_trap.below2 = kInvalidIndex;
 
     auto &below1 = trapezoids_[left_trap.below1];
+
     if (below1.above1 == kInvalidIndex) {
       below1.above1 = (left_trap_index != below1.above2) ? left_trap_index : below1.above1; //
     } else {
@@ -402,9 +404,13 @@ void PolyTri::update_xsplit_trapezoid_neighbors(
       trapezoids_[left_trap.below2].above1 = left_trap_index;
     }
   } else {
-    right_trap.below1 = (kInvalidIndex != right_trap.below2) ? right_trap.below2 : right_trap.below1;
-    left_trap.below2 = kInvalidIndex;
+    // END TRAPEZOID
+
+    right_trap.below1 = (kInvalidIndex != right_trap.below2) ? right_trap.below2
+                                                             : right_trap.below1
+                                                             ;
     right_trap.below2 = kInvalidIndex;
+    left_trap.below2 = kInvalidIndex;
 
     // When we close the last trapezoid the below trapezoid has 2 aboves,
     // unless the vertex is already segmented.
@@ -482,8 +488,10 @@ void PolyTri::split_merge_trapezoids(
   auto *x_node = create_node(X_NODE, parent, segment_index);
 
   // Set left / right sink, potentially with fusion.
-  x_node->left  = ( left_fusion_node) ? fusion_sinks( left_fusion_node, sink) : sink;
-  x_node->right = (right_fusion_node) ? fusion_sinks(right_fusion_node, sink) : sink;
+  x_node->left  = ( left_fusion_node) ? fusion_sinks( left_fusion_node, sink)
+                                      : sink;
+  x_node->right = (right_fusion_node) ? fusion_sinks(right_fusion_node, sink)
+                                      : sink;
   update_node_parent(x_node, x_node->left);
   update_node_parent(x_node, x_node->right);
 
@@ -570,6 +578,7 @@ void PolyTri::thread_endpoints(
   /// @note could be constant instead, by storing two below sinks and a segment for each Y.
   /// furthermore this will prevent a bug when trapzeoid collapse (on same Ys).
   const auto top_trapezoid_index = search_trapezoid_index(v, vertex_ynodes_[max_y_index]); //
+
   const auto new_trapezoid_index = get_new_trapezoid_index();
 
   auto &top_trapezoid = trapezoids_[top_trapezoid_index];
