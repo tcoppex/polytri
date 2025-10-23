@@ -159,7 +159,7 @@ bool PolyTri::is_angle_convex(uint32_t v0, uint32_t v1, uint32_t v2) const
   const auto& C = vertices_[v2];
 
   const auto det = (B.x - A.x) * (C.y - B.y) - (B.y - A.y) * (C.x - B.x);
-  return det <= 0.0;
+  return 0.0 < det;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -193,13 +193,20 @@ void PolyTri::triangulate_monochain(
 ) {
   const auto &end = monochain.list.end();
 
-  for (auto current = next(first, end); monochain.list.size() >= 3u;) {
+  size_t prevsize = monochain.list.size();
+
+  for (auto current = next(first, end); prevsize >= 3u; ) {
     const auto v0 = *prev(current, end);
     const auto v1 = *current;
     const auto v2 = *next(current, end);
 
-    if (is_angle_convex(v0, v1, v2)) {
-      triangles.push_back(triangle_t(v0, v1, v2));
+    const auto tri = triangle_t(v2, v1, v0); //
+
+    const bool is_convex = is_angle_convex(tri.v0, tri.v1, tri.v2);
+
+    if (is_convex) {
+      triangles.push_back(tri);
+
       // remove current vertex from the chain and update position.
       const auto &save = prev(current, end);
       monochain.list.erase(current);
@@ -207,6 +214,15 @@ void PolyTri::triangulate_monochain(
     } else {
       current = next(current, end);
     }
+
+    // ----------------
+    // [debug way to break out of an infinite loop]
+    // if (prevsize == monochain.list.size()) {
+    //   POLYTRI_LOG(">> break to avoid an infinite loop <<\n");
+    //   break;
+    // }
+    prevsize = monochain.list.size();
+    // ----------------
   }
 }
 

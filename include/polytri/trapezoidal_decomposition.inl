@@ -26,10 +26,20 @@ bool is_vertex_lower(
 
 bool PolyTri::is_top_inside_triangle(const Trapezoid_t &trapezoid) const
 {
+  POLYTRI_LOG("(%s)\n", __FUNCTION__);
+
   // Check if border segments are in direct order.
   if (is_top_triangle(trapezoid)) {
-    auto const side = (trapezoid.left_segment + 1u) % segments_.size();
-    return side == trapezoid.right_segment;
+    auto const side0 = (trapezoid.left_segment + num_segments_ - 1u) % num_segments_;
+    auto const side1 = (trapezoid.right_segment + 1u) % num_segments_;
+
+    POLYTRI_LOG("> is top, side0 = %d, side1 = %d (L = %u, R = %u)\n",
+      side0, side1, trapezoid.left_segment, trapezoid.right_segment
+    );
+
+    return (side0 == trapezoid.right_segment)
+        && (side1 == trapezoid.left_segment)
+        ;
   }
   return false;
 }

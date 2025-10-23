@@ -117,7 +117,7 @@ class PolyTri {
     std::vector<uint32_t> indices{};
     indices.reserve(3 * triangles.size());
     for (auto const& t : triangles) {
-      indices.insert(indices.end(), {t.v2, t.v1, t.v0});
+      indices.insert(indices.end(), {t.v0, t.v1, t.v2}); //
     }
     return indices;
   }
