@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
 #### Limitations
 
-Triangulating polygons with _holes_ is technically possible but not currently supported. Check those libraries for a good alternative:
+Triangulating polygons with _holes_ is technically possible but not currently supported. You can check those libraries for alternatives :
 
 - [Triangle](http://www.cs.cmu.edu/~quake/triangle.html), A Two-Dimensional Quality Mesh Generator and Delaunay Triangulator.
 - [mapbox/earcut.hpp](https://github.com/mapbox/earcut.hpp), A C++ port of earcut.js, a fast, header-only polygon triangulation library.
