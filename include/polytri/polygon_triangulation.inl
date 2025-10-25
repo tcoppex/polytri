@@ -248,43 +248,50 @@ void PolyTri::triangulate_monochain(
   const ChainIterator_t &first,
   TriangleBuffer_t &triangles
 ) {
-  POLYTRI_LOG("(%s)\n", __FUNCTION__);
+  // POLYTRI_LOG("(%s)\n", __FUNCTION__);
 
   const auto &end = monochain.list.end();
 
   size_t prevsize = monochain.list.size();
-  for (auto current = next(first, end); prevsize >= 3u; ) {
+
+  using TriangleKey = std::tuple<uint32_t, uint32_t, uint32_t>;
+  std::map<TriangleKey, bool> visited;
+
+  for (auto current = next(first, end); prevsize > 2u; ) {
     const auto v0 = *prev(current, end);
     const auto v1 = *current;
     const auto v2 = *next(current, end);
 
-    const auto tri = triangle_t(v2, v1, v0); //
+    auto tri = triangle_t(v2, v1, v0); //
 
-    const bool is_convex = is_angle_convex(tri.v0, tri.v1, tri.v2);
+    auto key = std::make_tuple(tri.v0, tri.v1, tri.v2);
+    if (visited.count(key)) {
+      break;
+    }
+
+    bool is_convex = is_angle_convex(tri.v0, tri.v1, tri.v2);
 
     if (is_convex) {
-      triangles.push_back(tri);
       POLYTRI_LOG("> new triangle (%u %u %u).\n", tri.v0, tri.v1, tri.v2);
 
+      print_monochain(monochain);
+      POLYTRI_LOG("\n");
+
+      triangles.push_back(tri);
+
       // remove current vertex from the chain and update position.
-      const auto &save = prev(current, end);
+      auto save = prev(current, end);
       monochain.list.erase(current);
       current = (first == save) ? next(first, end) : save;
 
     } else {
       POLYTRI_LOG("> triangle (%u %u %u) has bad orientation..\n", tri.v0, tri.v1, tri.v2);
 
+      visited[key] = true;
       current = next(current, end);
     }
 
-    // ----------------
-    // [debug way to break out of an infinite loop]
-    // if (prevsize == monochain.list.size()) {
-    //   POLYTRI_LOG(">> break to avoid an infinite loop <<\n");
-    //   break;
-    // }
     prevsize = monochain.list.size();
-    // ----------------
   }
 }
 
