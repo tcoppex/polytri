@@ -11,14 +11,13 @@ void PolyTri::Triangulate(
   assert(nullptr != nvertices_per_contour);
   assert(nullptr != vertices);
 
+  triangles.clear();
+  triangles.reserve(nvertices_per_contour[0]);
+
   PolyTri tri(num_contours, nvertices_per_contour, vertices);
 
   tri.trapezoidal_decomposition();
-
-  // If we assume trapezoid_decomposition is correct, the issues
-  // come probably from here.
   tri.monotone_partitioning();
-
   tri.triangulate_monotone_polygons(triangles);
 }
 
@@ -135,6 +134,20 @@ void PolyTri::monotone_partitioning()
 
 /* -------------------------------------------------------------------------- */
 
+void PolyTri::print_monochain(Monochain_t const& m) {
+  auto first = m.list.begin();
+
+  uint v_index = *first;
+  // bool is_extremity = is_vertex_extremity_[v_index];
+  POLYTRI_LOG("%u", v_index);
+
+  for (auto it = std::next(first); it != m.list.end(); it = std::next(it)) {
+    POLYTRI_LOG("->%u", *it);
+  }
+  POLYTRI_LOG("\n");
+}
+
+
 void PolyTri::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
 {
   POLYTRI_LOG("\n((%s))\n", __FUNCTION__);
@@ -201,8 +214,9 @@ bool PolyTri::is_angle_convex(uint32_t v0, uint32_t v1, uint32_t v2) const
   const auto& B = vertices_[v1];
   const auto& C = vertices_[v2];
 
-  const auto det = (B.x - A.x) * (C.y - B.y) - (B.y - A.y) * (C.x - B.x);
-  return 0.0 < det;
+  const auto det = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+
+  return det > 0.0; // convex if CCW
 }
 
 /* -------------------------------------------------------------------------- */

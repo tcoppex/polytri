@@ -101,15 +101,11 @@ void PolyTri::select_monotone_path(
   const auto &trapezoid = trapezoids_[trapezoid_index];
 
   POLYTRI_LOG("%s((trap_id) %u)\n", __FUNCTION__, trapezoid_index);
-  // POLYTRI_LOG(
-  //   "  > left-right segments = %u | %u\n",
-  //   trapezoid.left_segment, trapezoid.right_segment
-  // );
 
+  /* When both the left & right segments are invalid we are outside
+   * the polygon and the monotone partitionning failed. */
   assert(kInvalidIndex != trapezoid.left_segment);
   assert(kInvalidIndex != trapezoid.right_segment);
-
-  // Check if a break occured.
 
   const auto tr_max = trapezoid.max_y;
   const auto tr_min = trapezoid.min_y;
@@ -134,14 +130,14 @@ void PolyTri::select_monotone_path(
 
   POLYTRI_LOG("> %d%d%d%d\n", top_left, btm_left, top_right, btm_right);
 
-  const bool top_middle = (!top_left && !top_right);
-  const bool btm_middle = (!btm_left && !btm_right);
-  const bool top_triangle = (top_left && top_right);
-  const bool btm_triangle = (btm_left && btm_right);
+  const bool top_middle = (!top_left && !top_right);  //  0x0x
+  const bool btm_middle = (!btm_left && !btm_right);  //  x0x0
+  const bool top_flat = (top_left && top_right);      //  1x1x
+  const bool btm_flat = (btm_left && btm_right);      //  x1x1
 
   if (!((top_left && btm_left) || (top_right && btm_right))) {
-    if (top_triangle || btm_triangle) {
-      //
+    if (top_flat || btm_flat) {
+      // (should not happens)
     } else if (top_middle && btm_middle) {
       if (come_from_left) {
         auto *new_monochain = create_monochain(tr_min, tr_max, InsertLeft);
@@ -207,6 +203,10 @@ void PolyTri::select_monotone_path(
         }
       }
     }
+  } else {
+    POLYTRI_LOG("> Monotone path stopped (%d%d%d%d)\n",
+      top_left, btm_left, top_right, btm_right
+    );
   }
 }
 

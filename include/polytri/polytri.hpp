@@ -100,9 +100,8 @@ class PolyTri {
       auto const&a = p[0];
       auto const&b = p[p.size()-1];
       if ((fabs(a.x-b.x) < DBL_EPSILON) && (fabs(a.y-b.y) < DBL_EPSILON)) {
-        POLYTRI_LOG("Issue : start and end meet. (%.2f %.2f)\n", a.x, a.y);
-        vertices.resize(vertices.size()-1);
-        contour_lengths[j] -= 1;
+        POLYTRI_LOG("Issue : start and end vertices are similar. (%.2f %.2f)\n", a.x, a.y);
+        return {};
       }
     }
 
@@ -210,9 +209,11 @@ class PolyTri {
   // Trapezoidal Decomposition
   // -------------------------
 
-  // Return true if trapezoid is a top inside triangle.
+  // bool is_triangle(const Trapezoid_t &trapezoid) const;
+
+  /* Return true if the trapezoid is an inside triangle. */
   [[nodiscard]]
-  bool is_top_inside_triangle(uint32_t const trap_index) const;
+  bool is_inside_triangle(const Trapezoid_t &trapezoid, bool is_top) const;
 
   // Return true if trapezoid is a top triangle.
   [[nodiscard]]
@@ -221,6 +222,14 @@ class PolyTri {
   // Return true if trapezoid is a bottom triangle.
   [[nodiscard]]
   bool is_bottom_triangle(const Trapezoid_t &trapezoid) const;
+
+  // Return true if trapezoid is a top inside triangle.
+  [[nodiscard]]
+  bool is_top_inside_triangle(uint32_t const trap_index) const;
+
+  // Return true if trapezoid is a bottom inside triangle.
+  [[nodiscard]]
+  bool is_bottom_inside_triangle(uint32_t const trap_index) const;
 
   // Return a random segment index
   [[nodiscard]]
@@ -337,6 +346,8 @@ class PolyTri {
     const uint32_t from_index,
     const bool go_down
   );
+
+  void print_monochain(Monochain_t const& m);
 
   // -------------------------
   // Monochain Triangulation
