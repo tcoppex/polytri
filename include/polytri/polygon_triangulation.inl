@@ -106,16 +106,16 @@ void PolyTri::monotone_partitioning()
   // recursively build monotone chain.
   if (kInvalidIndex != trapezoid.below2) {
 
-    POLYTRI_LOG("\n>> create_monochain below1 RIGHT\n");
+    POLYTRI_LOG("\n\n>> create_monochain below1 RIGHT\n");
     auto *monochain = create_monochain(tr_max, tr_min, InsertRight);
     build_monotone_chains(monochain, trapezoid.below1, start_tr, true);
 
-    POLYTRI_LOG("\n>> create_monochain below2 LEFT\n");
+    POLYTRI_LOG("\n\n>> create_monochain below2 LEFT\n");
     monochain = create_monochain(tr_min, tr_max, InsertLeft);
     build_monotone_chains(monochain, trapezoid.below2, start_tr, true);
 
   } else {
-    POLYTRI_LOG(">> trapezoid below 2 does not exist**\n");
+    POLYTRI_LOG("\n\n>> trapezoid below 2 does not exist**\n");
 
     const auto& right_segment = segments_[trapezoid.right_segment];
     uint32_t max_y{}, min_y{};
@@ -156,7 +156,9 @@ void PolyTri::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
     return;
   }
 
-  // Comparator struct ot find top and bottom most vertices in the list.
+  // ----------------------------------
+
+  // Comparator struct to find top and bottom most vertices in the list.
   struct MinMaxComparator {
     MinMaxComparator(const vertex_t vertices[]) :
       data(vertices)
@@ -169,41 +171,40 @@ void PolyTri::triangulate_monotone_polygons(TriangleBuffer_t &triangles)
     vertex_t const* data{};
   } cmp(vertices_);
 
-  /* Merge sequential monochains. */
-  for (auto it = monochains_.begin(); it != monochains_.end();) {
-    auto next = std::next(it);
-    if (next == monochains_.end()) break;
+  // ----------------------------------
 
-    if (!it->list.empty() && !next->list.empty() &&
-      it->list.back() == next->list.front()) {
+  for (auto& m : monochains_) {
+    // find the topmost vertex of the monochain.
+    const auto min_max = std::minmax_element(m.list.begin(), m.list.end(), cmp);
 
-      it->list.pop_back();
-      it->list.splice(it->list.end(), next->list);
-      next = monochains_.erase(next);
-    } else {
-      ++it;
-    }
+    POLYTRI_LOG("insertion side: %u, min  %u max %u\n",
+      m.insertion_side, *min_max.first, *min_max.second
+    );
   }
 
-  POLYTRI_LOG("There is %u monochains.\n", (uint32_t)monochains_.size());
+  // ----------------------------------
 
+  POLYTRI_LOG("monochain size : %u\n", (uint32_t)monochains_.size());
 
   // Triangulate each monochains.
-  uint32_t m_index = 0;
   for (auto& m : monochains_) {
-    POLYTRI_LOG("swapchain %u, size %u\n", m_index++, (uint32_t)m.list.size());
 
     // find the topmost vertex of the monochain.
     const auto min_max = std::minmax_element(m.list.begin(), m.list.end(), cmp);
 
     // first vertex to use depends on the main edge side (opposite to insertion side).
     // Bottommost if insertion is on the left, topmost otherwise.
-    ChainIterator_t start_it{
-      (m.insertion_side == InsertLeft) ? min_max.first : min_max.second
-    };
+    const auto start_it = (m.insertion_side == InsertLeft) ? min_max.first
+                                                           : min_max.second
+                                                           ;
+
     triangulate_monochain(m, start_it, triangles);
   }
-  POLYTRI_LOG("(end triangulate_monotone_polygons)\n");
+
+  POLYTRI_LOG("\n\n\n");
+  for (auto& m : monochains_) {
+    print_monochain(m);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -248,50 +249,48 @@ void PolyTri::triangulate_monochain(
   const ChainIterator_t &first,
   TriangleBuffer_t &triangles
 ) {
-  // POLYTRI_LOG("(%s)\n", __FUNCTION__);
+  std::map<triangle_t::Key_t, bool> visited{};
 
-  const auto &end = monochain.list.end();
+  POLYTRI_LOG("\n(%s)\n", __FUNCTION__);
+  print_monochain(monochain);
 
-  size_t prevsize = monochain.list.size();
+  auto &list = monochain.list;
+  const auto &end = list.end();
 
-  using TriangleKey = std::tuple<uint32_t, uint32_t, uint32_t>;
-  std::map<TriangleKey, bool> visited;
-
-  for (auto current = next(first, end); prevsize > 2u; ) {
+  for (auto current = next(first, end); list.size() > 2u; ) {
     const auto v0 = *prev(current, end);
     const auto v1 = *current;
     const auto v2 = *next(current, end);
 
-    auto tri = triangle_t(v2, v1, v0); //
+    const auto tri = triangle_t(v2, v1, v0); //
+    const auto key = tri.key();
 
-    auto key = std::make_tuple(tri.v0, tri.v1, tri.v2);
     if (visited.count(key)) {
       break;
     }
 
-    bool is_convex = is_angle_convex(tri.v0, tri.v1, tri.v2);
+    const bool is_convex = is_angle_convex(tri.v0, tri.v1, tri.v2);
+
+    POLYTRI_LOG("> triangle (%u %u %u) %s\n", tri.v0, tri.v1, tri.v2,
+      is_convex ? "created." : "has bad orientation.."
+    );
 
     if (is_convex) {
-      POLYTRI_LOG("> new triangle (%u %u %u).\n", tri.v0, tri.v1, tri.v2);
-
-      print_monochain(monochain);
-      POLYTRI_LOG("\n");
-
+      // Save triangle indices.
       triangles.push_back(tri);
 
-      // remove current vertex from the chain and update position.
+      // Update the monochain.
       auto save = prev(current, end);
-      monochain.list.erase(current);
+      list.erase(current);
       current = (first == save) ? next(first, end) : save;
 
+      // Display new monochain states.
+      print_monochain(monochain);
     } else {
-      POLYTRI_LOG("> triangle (%u %u %u) has bad orientation..\n", tri.v0, tri.v1, tri.v2);
-
       visited[key] = true;
       current = next(current, end);
     }
 
-    prevsize = monochain.list.size();
   }
 }
 

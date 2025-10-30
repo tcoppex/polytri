@@ -652,9 +652,9 @@ void PolyTri::compute_offset_vertex(
 /* -------------------------------------------------------------------------- */
 
 void PolyTri::thread_endpoints(
-    const uint32_t segment_index,
-    const uint32_t max_y_index,
-    const uint32_t min_y_index
+  const uint32_t segment_index,
+  const uint32_t max_y_index,
+  const uint32_t min_y_index
 ) {
   // Recursively split and merge trapezoids intersecting the segment.
 
@@ -670,7 +670,6 @@ void PolyTri::thread_endpoints(
   /// @note could be constant instead, by storing two below sinks and a segment for each Y.
   /// furthermore this might prevent a bug when trapezoid collapse (on same Ys).
   const auto top_trapezoid_index = search_trapezoid_index(v, vertex_ynodes_[max_y_index]); //
-
   const auto new_trapezoid_index = get_new_trapezoid_index();
 
   auto &top_trapezoid = trapezoids_[top_trapezoid_index];
@@ -689,8 +688,8 @@ void PolyTri::thread_endpoints(
     if (above_trapezoid.below2 == kInvalidIndex) {
       // case 1 : new empty trapezoid
       above_trapezoid.below2 = new_trapezoid_index;
-    } else if (   (top_trapezoid_index == above_trapezoid.below2)
-               && (kInvalidIndex != top_trapezoid.left_segment)) {
+    } else if ((top_trapezoid_index == above_trapezoid.below2)
+            && (kInvalidIndex != top_trapezoid.left_segment)) {
       // case 2 : old right trap will become a triangle
       above_trapezoid.below2 = new_trapezoid_index;
     }
@@ -746,11 +745,10 @@ void PolyTri::init_permutation_table()
 
   permutation_.resize(num_segments_);
   for (uint32_t i = 0u; i < num_segments_; ++i) {
-    permutation_[i] = (num_segments_ - 1) - i;
+    permutation_[i] = (num_segments_ - 1u) - i;
   }
 
 #if POLYTRI_ENABLE_PERMUTATION
-  // 1761133065998441995
   const auto seed = std::chrono::system_clock::now().time_since_epoch().count();
   POLYTRI_LOG("seed used : %lu\n", seed);
   std::shuffle(

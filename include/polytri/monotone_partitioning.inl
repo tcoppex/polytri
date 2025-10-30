@@ -15,14 +15,6 @@ PolyTri::InsertionSide_t PolyTri::GetIntersectionSide(
 uint32_t PolyTri::find_top_inside_trapezoid_index() const {
   POLYTRI_LOG("%s\n", __FUNCTION__);
 
-  // Notes:
-  //
-  // - We could store top trapezoid on construction to avoid looking
-  // into all of them.
-  //
-  // - outside top triangle might be returned currently ?
-  //
-
   for (uint32_t i = 0u; i < trapezoids_.size(); ++i) {
     if (is_top_inside_triangle(i)) {
       return i;
@@ -218,23 +210,27 @@ void PolyTri::build_monotone_chains(
   const uint32_t from_index,
   const bool go_down
 ) {
-  if ((kInvalidIndex == trapezoid_index)
-   || (visited_trapezoids_[trapezoid_index])) {
+  if (kInvalidIndex == trapezoid_index) {
     return;
   }
-  visited_trapezoids_[trapezoid_index] = true;
-
   POLYTRI_LOG("%s((trap_id) %u, (from_id) %u, %s)\n", __FUNCTION__,
     trapezoid_index, from_index, go_down ? "go down" : "go up");
 
   const auto &trapezoid = trapezoids_[trapezoid_index];
 
+  if (visited_trapezoids_[trapezoid_index]) {
+    POLYTRI_LOG("%s((trap_id) %u) already visited, stop.\n",
+      __FUNCTION__, trapezoid_index);
+    return;
+  }
+  visited_trapezoids_[trapezoid_index] = true;
+
+  add_vertex_to_monochain(trapezoid, go_down, monochain);
+
   // Determine if the current search come from the first children of the trapezoids.
   const bool come_from_left = (from_index == trapezoid.above1)
                            || (from_index == trapezoid.below1)
                            ;
-
-  add_vertex_to_monochain(trapezoid, go_down, monochain);
   select_monotone_path(trapezoid_index, go_down, come_from_left);
 
   // Continue in the same direction.

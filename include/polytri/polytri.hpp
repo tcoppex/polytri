@@ -7,13 +7,13 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <algorithm>
 #include <chrono>
-#include <iostream>
 #include <limits>
 #include <list>
 #include <random>
+#include <tuple>
 #include <vector>
-#include <algorithm>
 
 // ----------------------------------------------------------------------------
 
@@ -45,19 +45,26 @@ class PolyTri {
     uint32_t v1{};
   };
 
+
   struct triangle_t {
     triangle_t() = default;
+
     triangle_t(uint32_t _v0, uint32_t _v1, uint32_t _v2)
       : v0(_v0), v1(_v1), v2(_v2)
     {}
+
+    using Key_t = std::tuple<uint32_t, uint32_t, uint32_t>;
+    Key_t const key() const noexcept { return std::make_tuple(v0, v1, v2); }
+
     uint32_t v0{};
     uint32_t v1{};
     uint32_t v2{};
+
   };
 
- public:
   using TriangleBuffer_t = std::vector<triangle_t>;
 
+ public:
   /**
    * num_contours : number of contours and size of the nvertices_per_contour array.
    * nvertices_per_contour : array of num_contour, each cell contain the number of
